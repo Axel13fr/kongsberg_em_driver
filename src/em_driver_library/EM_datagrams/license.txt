@@ -1,0 +1,5 @@
+Copyright
+The information contained in this document remains the sole property of Kongsberg Maritime AS.
+No part of this document may be copied or reproduced in any form or by any means, and the
+information contained within it is not to be communicated to a third party, without the prior
+written consent of Kongsberg Maritime AS.

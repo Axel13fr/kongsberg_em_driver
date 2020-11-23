@@ -1,0 +1,5 @@
+<launch>
+    <param name="pass_path" value="$(find ds_kongsberg)/src/test/pass.kmall"/>
+    <param name="fail_path" value="$(find ds_kongsberg)/src/test/fail.kmall"/>
+    <test test-name="test_em2040_parse" pkg="ds_kongsberg" type="test_em2040_parse"/>
+</launch>
