@@ -62,7 +62,7 @@ KongsbergEM2040::~KongsbergEM2040(){
 // KCtrl Parsers
 // -------------
 bool
-KongsbergEM2040::parse_message(ds_core_msgs::RawData& raw)
+KongsbergEM2040::parse_message(const ds_core_msgs::RawData& raw)
 {
 
   ds_kongsberg_msgs::KongsbergKSSIS msg;
@@ -241,7 +241,7 @@ KongsbergEM2040::read_bist_result(ds_core_msgs::RawData& raw)
   return true;
 }
 bool
-KongsbergEM2040::read_kmall_dgm_from_kctrl(int type, ds_core_msgs::RawData& raw)
+KongsbergEM2040::read_kmall_dgm_from_kctrl(int type,const ds_core_msgs::RawData& raw)
 {
   ds_core_msgs::RawData stripped_raw{};
   stripped_raw.header = raw.header;
@@ -275,7 +275,7 @@ KongsbergEM2040::read_kmall_dgm_from_kctrl(int type, ds_core_msgs::RawData& raw)
 // KMAll parsers
 // -------------
 bool
-KongsbergEM2040::parse_data(ds_core_msgs::RawData& raw)
+KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
 {
 
   auto data_size = raw.data.size();
@@ -285,8 +285,8 @@ KongsbergEM2040::parse_data(ds_core_msgs::RawData& raw)
     return false;
   }
 
-  uint8_t* bytes_ptr = raw.data.data();
-  auto hdr = reinterpret_cast<EMdgmHeader*>(bytes_ptr);
+  const uint8_t* bytes_ptr = raw.data.data();
+  auto hdr = reinterpret_cast<const EMdgmHeader*>(bytes_ptr);
   //ROS_ERROR_STREAM("TIME: "<<hdr->time_sec);
   std::string msg_type(hdr->dgmType, hdr->dgmType + sizeof(hdr->dgmType)/sizeof(hdr->dgmType[0]));
 
@@ -1074,7 +1074,7 @@ KongsbergEM2040::_new_kmall_file()
   ROS_ERROR_STREAM("New kmall file: " << d->m_status.kmall_filename);
 }
 void
-KongsbergEM2040::_write_kmall_data(std::vector<uint8_t>& data)
+KongsbergEM2040::_write_kmall_data(const std::vector<uint8_t>& data)
 {
 
   if (d->kmall_stream->is_open()){

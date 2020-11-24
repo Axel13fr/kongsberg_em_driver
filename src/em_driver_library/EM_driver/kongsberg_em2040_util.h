@@ -2,15 +2,13 @@
 // Created by jvaccaro on 7/17/19.
 //
 
-#ifndef PROJECT_KONGSBERG_EM2040_UTIL_H
-#define PROJECT_KONGSBERG_EM2040_UTIL_H
+#pragma once
 
 #define M_PI_RAD 3.14159
 #define M_PI_DEG 180.0
 
 #include "boost/date_time/posix_time/posix_time_io.hpp"
 #include "boost/date_time/posix_time/posix_time_types.hpp"
-#include <sstream>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -104,5 +102,3 @@ file_split_out_xml_params(std::string filename, std::string token_param="ID", st
 }
 
 } //namespace
-
-#endif //PROJECT_KONGSBERG_EM2040_UTIL_H

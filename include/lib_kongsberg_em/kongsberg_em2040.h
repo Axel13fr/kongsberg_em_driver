@@ -31,8 +31,7 @@
 * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef SENTRY_WS_KONGSBERGEM2040_H
-#define SENTRY_WS_KONGSBERGEM2040_H
+#pragma once
 
 #include <ds_core_msgs/RawData.h>
 #include "../../src/em_driver_library/EM_datagrams/EMdgmFormat.h"
@@ -64,20 +63,18 @@ class KongsbergEM2040  : boost::noncopyable
   KongsbergEM2040(ros::NodeHandle &nh, SendKCtrlDataFunc send_kctrl_data);
   ~KongsbergEM2040();
 
-  bool parse_data(ds_core_msgs::RawData& raw);
-  bool parse_message(ds_core_msgs::RawData& raw);
-  bool read_kmall_dgm_from_kctrl(int type, ds_core_msgs::RawData& raw);
+  bool parse_data(const ds_core_msgs::RawData &raw);
+  bool parse_message(const ds_core_msgs::RawData &raw);
+  bool read_kmall_dgm_from_kctrl(int type, const ds_core_msgs::RawData &raw);
   bool parse_ipu(std::vector<std::string> fields);
 
   std::pair<bool, ds_core_msgs::RawData> check_and_append_mpartition(ds_core_msgs::RawData);
   static std::pair<bool, EMdgmMRZ> read_mrz(uint8_t* bytes, int max_length);
   bool read_bist_result(ds_core_msgs::RawData& raw);
   uint8_t read_good_bad_missing(std::string);
-//  static EMdgmMWC read_mwc(uint8_t* bytes);
-//
+
   static ds_multibeam_msgs::MultibeamRaw mrz_to_mb_raw(EMdgmMRZ* msg);
-//  static sensor_msgs::Image mwc_to_image(EMdgmMWC* msg);
-//  static sensor_msgs::PointCloud2 mb_raw_to_pointcloud(ds_multibeam_msgs::MultibeamRaw* msg);
+
   void mbraw_to_kmstatus(ds_multibeam_msgs::MultibeamRaw raw);
 
   void setupServices();
@@ -105,7 +102,7 @@ class KongsbergEM2040  : boost::noncopyable
   void _print_bist(std::string name, std::string status, std::string msg);
   void _run_next_bist();
   void _new_kmall_file();
-  void _write_kmall_data(std::vector<uint8_t>& data);
+  void _write_kmall_data(const std::vector<uint8_t> &data);
   void _write_kctrl_xml(std::vector<uint8_t>& data);
   std::string _read_kctrl_xml(std::string filename);
   void _on_kctrl_timeout(const ros::TimerEvent&);
@@ -121,4 +118,3 @@ class KongsbergEM2040  : boost::noncopyable
 
 }
 
-#endif //SENTRY_WS_KONGSBERGEM2040_H

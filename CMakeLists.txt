@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(kongsberg_em_driver)
 
-## Compile as C++11, supported in ROS Kinetic and newer
- add_compile_options(-std=c++11)
+set(CMAKE_CXX_STANDARD 14)
+# ext-numeric-literals is needed for Kinetic compilation
+add_compile_options(-std=c++14 -Wall -Werror=return-type -fext-numeric-literals)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -12,7 +13,8 @@ find_package(catkin REQUIRED COMPONENTS
         std_msgs
         ds_core_msgs
         ds_kongsberg_msgs
-        ds_multibeam_msgs)
+        ds_multibeam_msgs
+        librosasio)
 
 find_package(Boost REQUIRED COMPONENTS system)
 
@@ -29,7 +31,8 @@ find_package(Boost REQUIRED COMPONENTS system)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES lib_kongsberg_em
-  CATKIN_DEPENDS std_msgs roscpp ds_core_msgs ds_kongsberg_msgs ds_multibeam_msgs
+  CATKIN_DEPENDS std_msgs roscpp ds_core_msgs
+  ds_kongsberg_msgs ds_multibeam_msgs librosasio
 #  DEPENDS system_lib
 )
 

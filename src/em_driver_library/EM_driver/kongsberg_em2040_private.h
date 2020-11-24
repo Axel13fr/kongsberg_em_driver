@@ -31,8 +31,7 @@
 * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef SENTRY_WS_KONGSBERGEM2040_PRIVATE_H
-#define SENTRY_WS_KONGSBERGEM2040_PRIVATE_H
+#pragma once
 
 #include "lib_kongsberg_em/kongsberg_em2040.h"
 #include <mutex>
@@ -111,4 +110,3 @@ struct KongsbergEM2040Private{
 //  int xml_count = 0;
 };
 }
-#endif //SENTRY_WS_KONGSBERGEM2040_PRIVATE_H

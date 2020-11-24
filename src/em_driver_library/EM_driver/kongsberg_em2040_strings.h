@@ -31,8 +31,7 @@
 * POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef SENTRY_WS_KONGSBERGEM2040_STRINGS_H
-#define SENTRY_WS_KONGSBERGEM2040_STRINGS_H
+#pragma once
 
 /* Defined by J Vaccaro */
 #define EM_DGM_I_PU                        "#IPU"
@@ -664,5 +663,3 @@ struct bist_result_strings {
 //typedef struct bist_result_def bist_result;
 
 } //namespace
-
-#endif //SENTRY_WS_KONGSBERGEM2040_STRINGS_H

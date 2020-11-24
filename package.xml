@@ -30,6 +30,7 @@
   <depend>ds_multibeam_msgs</depend>
   <depend>ds_kongsberg_msgs</depend>
   <depend>sensor_msgs</depend>
+  <depend>librosasio</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
