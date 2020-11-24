@@ -71,7 +71,6 @@ void NodeUdpSocket::sendData(const std::string &data)
 void NodeUdpSocket::receive(void)
 {
   recv_buffer_.assign(recv_buffer_.size(), 0);
-  //  boostwrite (socket, boost::asio::buffer(boost::asio::new_buffers->recv_buffer_));
   socket_->async_receive(boost::asio::buffer(recv_buffer_), 0,
                          boost::bind(&NodeUdpSocket::handle_receive, this, boost::asio::placeholders::error,
                                      boost::asio::placeholders::bytes_transferred));
@@ -93,6 +92,10 @@ void NodeUdpSocket::handle_receive(const boost::system::error_code &error, std::
     }
 
     receive();
+    if (error == boost::asio::error::message_size)
+    {
+      ROS_ERROR_STREAM("UDP Socket message size error.Bytes received" << bytes_transferred);
+    }
   }
 }
 
