@@ -24,9 +24,9 @@ int main(int argc, char* argv[])
   NodeUdpSocket kmall_socket(io_context, "kmall", nh);
 
   // The driver will send commands using the kctrl socket
-  auto sendKCtrlData = boost::bind(&NodeUdpSocket::sendData, &kctrl_socket,_1);
+  auto sendKCtrlData = boost::bind(&NodeUdpSocket::sendData, &kctrl_socket, _1);
   kongsberg_em::KongsbergEM2040 driver(nh, sendKCtrlData);
-
+  driver.setupAll();
   // The driver will receive data from the sockets using these call backs
   kctrl_socket.setReceiveCb(boost::bind(&kongsberg_em::KongsbergEM2040::_on_kctrl_data, &driver,_1));
   kmall_socket.setReceiveCb(boost::bind(&kongsberg_em::KongsbergEM2040::_on_kmall_data, &driver,_1));

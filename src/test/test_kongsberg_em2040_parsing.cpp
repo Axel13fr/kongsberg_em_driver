@@ -30,7 +30,7 @@
 //
 // Created by jvaccaro on 5/28/19.
 //
-#include "ds_kongsberg/kongsberg_em2040.h"
+#include "lib_kongsberg_em/kongsberg_em2040.h"
 
 #include <list>
 #include <gtest/gtest.h>
@@ -49,6 +49,10 @@ class Em2040Test : public::testing::Test
   }
 };
 
+void sendKCtrlData(const std::string &data){
+
+}
+
 TEST_F(Em2040Test, alwaysPass)
 {
   EXPECT_TRUE(true);
@@ -56,8 +60,10 @@ TEST_F(Em2040Test, alwaysPass)
 
 TEST_F(Em2040Test, parsePass)
 {
-//  auto node = new ds_kongsberg::KongsbergEM2040();
-  ds_kongsberg::KongsbergEM2040 nh;
+  auto f = boost::bind(&sendKCtrlData,_1);
+  ros::NodeHandle nh;
+  kongsberg_em::KongsbergEM2040 driver(nh,f);
+  driver.setupAll();
   long long int index = 0;
   const auto test_ls = std::list<std::pair<bool, int>>{
     {true, 1104}, // #IIP
@@ -99,7 +105,7 @@ TEST_F(Em2040Test, parsePass)
   for (auto test_l : test_ls){
     auto pass = test_l.first;
     auto size = test_l.second;
-    ROS_ERROR_STREAM(" >> Reading " << size << " bytes from index " << index);
+    ROS_INFO_STREAM(" >> Reading " << size << " bytes from index " << index);
     auto byte_msg = ds_core_msgs::RawData{};
     bool ok = false;
     byte_msg.data.resize(size);
@@ -115,7 +121,7 @@ TEST_F(Em2040Test, parsePass)
         byte_msg.data[i] = foo[i];
       }
       byte_msg.ds_header.io_time = ros::Time::now();
-      ok = nh.parse_data(byte_msg);
+      ok = driver.parse_data(byte_msg);
     }
     EXPECT_EQ(pass, ok);
     index += size;
@@ -127,8 +133,6 @@ TEST_F(Em2040Test, parsePass)
 // Run all the tests that were declared with TEST()
 int main(int argc, char** argv)
 {
-
-
   testing::InitGoogleTest(&argc, argv);
   ros::init(argc, argv, "test_em2040_parse");
   auto ret = RUN_ALL_TESTS();

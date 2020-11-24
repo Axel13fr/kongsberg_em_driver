@@ -615,6 +615,14 @@ KongsbergEM2040::mbraw_to_kmstatus(ds_multibeam_msgs::MultibeamRaw raw)
   d->kmstatus_pub_.publish(d->m_status);
 }
 
+void KongsbergEM2040::setupAll()
+{
+  setupParameters();
+  setupPublishers();
+  setupServices();
+  setupTimers();
+}
+
 
 // XXXXXXXXXX
 // Setup Fxns
@@ -651,9 +659,9 @@ KongsbergEM2040::setupParameters()
   d->m_status.sounder_name = ros::param::param<std::string>("~sounder_name", "EM2040_40");
   d->m_status.ship_name = ros::param::param<std::string>("~ship_name", "ShipName");
   d->m_status.pu_connected = !ros::param::param<bool>("~run_startup", true);
-  d->m_status.bist_directory = ros::param::param<std::string>("~bist_dir", "/home/jvaccaro/");
-  d->m_status.kmall_directory = ros::param::param<std::string>("~kmall_dir", "/home/jvaccaro/");
-  d->m_status.xml_directory = ros::param::param<std::string>("~xml_dir", "/home/jvaccaro/");
+  d->m_status.bist_directory = ros::param::param<std::string>("~bist_dir", "/tmp/");
+  d->m_status.kmall_directory = ros::param::param<std::string>("~kmall_dir", "/tmp/");
+  d->m_status.xml_directory = ros::param::param<std::string>("~xml_dir", "/tmp/");
   d->m_status.cpu_temperature = "";
   d->m_status.position_1 =  "";
   d->m_status.position_2 =  "";
@@ -1071,7 +1079,7 @@ KongsbergEM2040::_new_kmall_file()
   d->kmall_buffer_size = 0;
   d->kmall_file_size = 0;
   d->m_status.kmall_filesize_kB = 0;
-  ROS_ERROR_STREAM("New kmall file: " << d->m_status.kmall_filename);
+  ROS_WARN_STREAM("New kmall file: " << d->m_status.kmall_filename);
 }
 void
 KongsbergEM2040::_write_kmall_data(const std::vector<uint8_t>& data)

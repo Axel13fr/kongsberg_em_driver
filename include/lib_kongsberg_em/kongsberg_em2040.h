@@ -77,16 +77,17 @@ class KongsbergEM2040  : boost::noncopyable
 
   void mbraw_to_kmstatus(ds_multibeam_msgs::MultibeamRaw raw);
 
+  void setupAll();
   void setupServices();
   void setupPublishers();
   void setupParameters();
-  void setupConnections();
   void setupTimers();
 
   void _on_kmall_data(ds_core_msgs::RawData raw);
   void _on_kctrl_data(ds_core_msgs::RawData raw);
 
  private:
+
   bool _ping_cmd(ds_kongsberg_msgs::PingCmd::Request &req, ds_kongsberg_msgs::PingCmd::Response &res);
   bool _power_cmd(ds_kongsberg_msgs::PowerCmd::Request &req, ds_kongsberg_msgs::PowerCmd::Response &res);
   bool _settings_cmd(ds_kongsberg_msgs::SettingsCmd::Request &req, ds_kongsberg_msgs::SettingsCmd::Response &res);

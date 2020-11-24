@@ -73,12 +73,12 @@ target_link_libraries(kongsberg_em_node
 ## Testing ##
 #############
 
-if(CATKIN_ENABLE_TESTING)
+#if(CATKIN_ENABLE_TESTING)
     find_package(rostest REQUIRED)
     add_rostest_gtest(test_em2040_parse
         launch/em2040_parse_test.test
         src/test/test_kongsberg_em2040_parsing.cpp)
-    target_link_libraries(test_em2040_parse ${PROJECT_NAME})
+    target_link_libraries(test_em2040_parse lib_kongsberg_em)
     catkin_add_gtest(test_em2040_utils src/test/test_kongsberg_em2040_util.cpp)
-    target_link_libraries(test_em2040_utils ${PROJECT_NAME})
-endif(CATKIN_ENABLE_TESTING)
+    target_link_libraries(test_em2040_utils lib_kongsberg_em)
+#endif(CATKIN_ENABLE_TESTING)
