@@ -6,11 +6,11 @@ int main(int argc, char* argv[])
 {
   // Boost Event loop handler
 #if BOOST_VERSION <= 106501
-  // Ubuntu 18.04 Boost version
+  // ROS Melodic
   boost::asio::io_service io_context;
 #else
-  // Ubuntu 20.04 Boost version
-  boost::asio::io_context m_io_context;
+  // ROS Noetic
+  boost::asio::io_context io_context;
 #endif
   // Static Function Call doing the magic to unify event loops
   AsioCallbackQueue::replaceGlobalQueue(io_context);

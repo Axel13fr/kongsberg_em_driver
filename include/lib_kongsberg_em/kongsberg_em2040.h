@@ -77,7 +77,9 @@ class KongsbergEM2040  : boost::noncopyable
 
   void mbraw_to_kmstatus(ds_multibeam_msgs::MultibeamRaw raw);
 
+  // Calls all the ROS setup functions at once(publishers, services, parameters, timers)
   void setupAll();
+
   void setupServices();
   void setupPublishers();
   void setupParameters();
