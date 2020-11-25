@@ -38,6 +38,7 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <ros/node_handle.h>
+#include <pcl_ros/point_cloud.h>
 
 #include "ds_kongsberg_msgs/PingCmd.h"
 #include "ds_kongsberg_msgs/PowerCmd.h"
@@ -74,6 +75,7 @@ class KongsbergEM2040  : boost::noncopyable
   uint8_t read_good_bad_missing(std::string);
 
   static ds_multibeam_msgs::MultibeamRaw mrz_to_mb_raw(EMdgmMRZ* msg);
+  static sensor_msgs::PointCloud2 mrz_to_pointcloud(EMdgmMRZ* msg, const std::string &frame_id);
 
   void mbraw_to_kmstatus(ds_multibeam_msgs::MultibeamRaw raw);
 

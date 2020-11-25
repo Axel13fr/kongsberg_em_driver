@@ -10,6 +10,7 @@ add_compile_options(-std=c++14 -Wall -Werror=return-type -fext-numeric-literals)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
         roscpp
+        pcl_ros
         std_msgs
         ds_core_msgs
         ds_kongsberg_msgs

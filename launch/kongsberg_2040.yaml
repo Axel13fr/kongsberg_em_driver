@@ -10,6 +10,7 @@ kctrl_connection:
 sounder_name: EM2040_130
 run_startup: false
 ship_name: my_ship
+mrz_frame_id: sonar_vcs
 bist_dir: /tmp/bist/
 kmall_dir: /tmp/kmall/
 xml_dir: /tmp/xml/

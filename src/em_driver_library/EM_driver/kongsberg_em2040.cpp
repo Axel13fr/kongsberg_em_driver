@@ -374,12 +374,10 @@ KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
         mbr.header = r.header;
         mbr.ds_header = r.ds_header;
         d->mbraw_pub_.publish(mbr);
+        d->pointcloud_pub_.publish(mrz_to_pointcloud(&mrz,d->mrz_frame_id_));
         d->m_status.ping_num = mrz.cmnPart.pingCnt;
-        //ROS_ERROR_STREAM("Ping num: "<<d_ptr_->m_status.ping_num);
         mbraw_to_kmstatus(mbr);
       }
-//      d_ptr_->kmall_record_pub_.publish(record);
-//      return true;
     } else {
       r.record_name = "EM_DGM_M_RANGE_AND_DEPTH P";
       ROS_ERROR_STREAM("PING PARTITION");
@@ -591,6 +589,28 @@ KongsbergEM2040::mrz_to_mb_raw(EMdgmMRZ* msg)
   return mb;
 }
 
+sensor_msgs::PointCloud2 KongsbergEM2040::mrz_to_pointcloud(EMdgmMRZ *msg, const std::string &frame_id)
+{
+  pcl::PointCloud<pcl::PointXYZI> pcl;
+  int num_soundings = msg->rxInfo.numSoundingsMaxMain + msg->rxInfo.numExtraDetections;
+  pcl::PointXYZI pt;
+  for (int i = 0; i < num_soundings; i++)
+  {
+    pt.x = msg->sounding[i].x_reRefPoint_m;
+    pt.y = msg->sounding[i].y_reRefPoint_m;
+    pt.z = msg->sounding[i].z_reRefPoint_m;
+    //    ROS_WARN("Point: " << pt);
+    pt.intensity = msg->sounding[i].sourceLevelApplied_dB;
+    pcl.push_back(pt);
+  }
+
+  sensor_msgs::PointCloud2 m;
+  pcl::toROSMsg(pcl, m);
+  m.header.stamp = ros::Time().fromSec(msg->header.time_sec + msg->header.time_nanosec / 1.0e9);
+  m.header.frame_id = frame_id;
+  return m;
+}
+
 void
 KongsbergEM2040::mbraw_to_kmstatus(ds_multibeam_msgs::MultibeamRaw raw)
 {
@@ -707,6 +727,7 @@ KongsbergEM2040::setupParameters()
   d->m_status.rt_min_swath_distance = "0";
   d->m_status.rt_trigger = "0";
   // other parameters
+  d->mrz_frame_id_ = ros::param::param<std::string>("~mrz_frame_id", "sonar_vcs");
   d->kmall_max_buffer_size = 1e3*ros::param::param<int>("~max_kmall_buffer_kB", 30);
   d->kmall_max_file_size = 1e6*ros::param::param<int>("~max_kmall_file_MB", 400);
   d->kmall_partitioned = ds_core_msgs::RawData{};

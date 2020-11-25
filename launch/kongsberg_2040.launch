@@ -3,4 +3,8 @@
     <node pkg="kongsberg_em_driver" type="kongsberg_em_node" name="kongsberg_2040">
         <rosparam command="load" file="$(find kongsberg_em_driver)/launch/kongsberg_2040.yaml"/>
     </node>
+
+    <!-- Kongsberg vessel coordinate system has X forward, Y to starboard, Z down so to come back 
+    to the standard ROS coordinate system (Z up, https://www.ros.org/reps/rep-0103.html) with we need to roll this by 180° -->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="world_to_sonar_tf" args="0 0 0 0 0 3.1415926 world sonar_vcs" />
 </launch>
