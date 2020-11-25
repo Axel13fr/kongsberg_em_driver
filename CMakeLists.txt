@@ -80,6 +80,12 @@ install(DIRECTORY include/lib_kongsberg_em/
   PATTERN ".svn" EXCLUDE
 )
 
+install(DIRECTORY
+  launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
+
 #############
 ## Testing ##
 #############

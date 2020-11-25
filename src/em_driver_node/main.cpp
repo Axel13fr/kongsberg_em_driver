@@ -17,11 +17,11 @@ int main(int argc, char* argv[])
 
   // ROS setup
   ros::init(argc, argv, "test_node", ros::init_options::NoSigintHandler);
-  ros::NodeHandle nh("kongsberg_em2040");
+  ros::NodeHandle nh("~");
 
   // UDP sockets for sonar communication
-  NodeUdpSocket kctrl_socket(io_context, "kcontroller", nh);
-  NodeUdpSocket kmall_socket(io_context, "kmall", nh);
+  NodeUdpSocket kctrl_socket(io_context, "kctrl_connection", nh);
+  NodeUdpSocket kmall_socket(io_context, "kmall_connection", nh);
 
   // The driver will send commands using the kctrl socket
   auto sendKCtrlData = boost::bind(&NodeUdpSocket::sendData, &kctrl_socket, _1);

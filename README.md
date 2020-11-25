@@ -5,8 +5,8 @@ This implementation is largely based on the work done by WHOI Deep Submergence L
 
 ## Dependencies
 
-- [ds_kongsberg_msgs](https://github.com/Axel13fr/ds_kongsberg_msgs)
+- [ds_kongsberg_msgs](https://github.com/Axel13fr/ds_kongsberg_msgs): separated from the existing [ds package](https://bitbucket.org/whoidsl/ds_kongsberg/master) to avoid compiling the original implementation.
 
 - [ds_msgs](https://bitbucket.org/whoidsl/ds_msgs/src/master/)
 
-- lib_rosasio (combines ROS and Boost Asio event loops)
+- [lib_rosasio](https://github.com/Axel13fr/librosasio) (combines ROS and Boost Asio event loops)

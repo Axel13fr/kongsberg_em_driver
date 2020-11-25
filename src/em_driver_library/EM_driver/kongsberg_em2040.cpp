@@ -653,7 +653,6 @@ KongsbergEM2040::setupServices()
 void
 KongsbergEM2040::setupParameters()
 {
-
   // m_status parameters
   d->m_status = ds_kongsberg_msgs::KongsbergStatus{};
   d->m_status.sounder_name = ros::param::param<std::string>("~sounder_name", "EM2040_40");

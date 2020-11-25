@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+    <node pkg="kongsberg_em_driver" type="kongsberg_em_node" name="kongsberg_2040">
+        <rosparam command="load" file="$(find kongsberg_em_driver)/launch/kongsberg_2040.yaml"/>
+    </node>
+</launch>

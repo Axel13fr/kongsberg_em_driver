@@ -12,16 +12,16 @@ NodeUdpSocket::NodeUdpSocket(boost::asio::io_service& io_service, const std::str
       name_(name)
 {
   recv_buffer_.resize(65536);
-
-  if (not nh.hasParam(name + "/udp_rx_port") or not nh.hasParam(name + "/udp_tx_port") or
-      not nh.hasParam(name + "/udp_address"))
+  const auto PARAM_PREFIX = name + "/";
+  if (not nh.hasParam(PARAM_PREFIX + "udp_rx_port") or not nh.hasParam(name + "/udp_tx_port") or
+      not nh.hasParam(PARAM_PREFIX + "udp_address"))
   {
-    ROS_FATAL_STREAM("Missing udp_rx_port or udp_tx_port or udp_address parameter for" << name);
+    ROS_FATAL_STREAM("Missing udp_rx_port or udp_tx_port or udp_address parameter for socket " << name);
   }
 
-  int udp_rx_port = nh.param(name + "/udp_rx_port", 4444);
-  int udp_tx_port = nh.param(name + "/udp_tx_port", 5555);
-  std::string udp_address = nh.param(name + "/udp_address", std::string("127.0.0.1"));
+  int udp_rx_port = nh.param(PARAM_PREFIX + "udp_rx_port", 4444);
+  int udp_tx_port = nh.param(PARAM_PREFIX + "udp_tx_port", 5555);
+  std::string udp_address = nh.param(PARAM_PREFIX + "udp_address", std::string("127.0.0.1"));
 
   // Create the socket and endpoint
   auto udp_ip = address::from_string(udp_address);
