@@ -350,19 +350,22 @@ KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
     d->pinging_timer.stop();
     d->pinging_timer.start();
     d->m_status.pinging = true;
-    // Check if our structure definitions matches the one received
-    if (dgmVersion != MRZ_VERSION)
-    {
-      ROS_ERROR_STREAM("Received MRZ message version " << dgmVersion
-                          << " vs supported version" << MRZ_VERSION);
-      return false;
-    }
     r.record_name = "EM_DGM_M_RANGE_AND_DEPTH";
     bool full_data = false;
     ds_core_msgs::RawData logme{};
     std::tie(full_data, logme) = check_and_append_mpartition(raw);
     if (full_data){
       _write_kmall_data(logme.data);
+      // Assume that the EMdgmMpartition_def structure will not change so
+      // it's safe to collect and write all partitions of this structure even without a
+      // compatible version: inform but not try to deserialize
+      if (dgmVersion != MRZ_VERSION)
+      {
+        ROS_ERROR_STREAM("Received MRZ message version " << dgmVersion
+                                                         << " vs supported version" << MRZ_VERSION);
+        return false;
+      }
+
       EMdgmMRZ mrz;
       bool ok = false;
       std::tie(ok, mrz) = read_mrz(logme.data.data(),logme.data.size());
@@ -383,18 +386,20 @@ KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
     }
   }
   else if (msg_type==EM_DGM_M_WATER_COLUMN){
-    if (dgmVersion != MWC_VERSION)
-    {
-      ROS_ERROR_STREAM("Received MWC message version " << dgmVersion
-                                                       << " vs supported version" << MWC_VERSION);
-      return false;
-    }
     r.record_name = "EM_DGM_M_WATER_COLUMN";
     bool full_data = false;
     ds_core_msgs::RawData logme{};
     std::tie(full_data, logme) = check_and_append_mpartition(raw);
     if (full_data) {
       _write_kmall_data(logme.data);
+      // Assume that the EMdgmMpartition_def structure will not change so
+      // it's safe to collect and write all partitions of this structure even without a
+      // compatible structure definition: inform but not try to deserialize
+      if (dgmVersion != MWC_VERSION)
+      {
+        ROS_ERROR_STREAM("Received MWC message version " << dgmVersion << " vs supported version" << MWC_VERSION);
+        return false;
+      }
     }
   }
   else if (msg_type==EM_DGM_C_POSITION){
