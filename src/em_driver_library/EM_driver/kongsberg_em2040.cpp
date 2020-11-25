@@ -289,6 +289,7 @@ KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
   auto hdr = reinterpret_cast<const EMdgmHeader*>(bytes_ptr);
   //ROS_ERROR_STREAM("TIME: "<<hdr->time_sec);
   std::string msg_type(hdr->dgmType, hdr->dgmType + sizeof(hdr->dgmType)/sizeof(hdr->dgmType[0]));
+  const uint8_t dgmVersion = hdr->dgmVersion;
 
   ds_kongsberg_msgs::KongsbergKMAllRecord r;
   r.ds_header = raw.ds_header;
@@ -341,6 +342,7 @@ KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
     _write_kmall_data(raw.data);
   }
   else if (msg_type==EM_DGM_S_HEIGHT){
+
     r.record_name = "EM_DGM_S_HEIGHT";
     _write_kmall_data(raw.data);
   }
@@ -348,6 +350,13 @@ KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
     d->pinging_timer.stop();
     d->pinging_timer.start();
     d->m_status.pinging = true;
+    // Check if our structure definitions matches the one received
+    if (dgmVersion != MRZ_VERSION)
+    {
+      ROS_ERROR_STREAM("Received MRZ message version " << dgmVersion
+                          << " vs supported version" << MRZ_VERSION);
+      return false;
+    }
     r.record_name = "EM_DGM_M_RANGE_AND_DEPTH";
     bool full_data = false;
     ds_core_msgs::RawData logme{};
@@ -374,6 +383,12 @@ KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
     }
   }
   else if (msg_type==EM_DGM_M_WATER_COLUMN){
+    if (dgmVersion != MWC_VERSION)
+    {
+      ROS_ERROR_STREAM("Received MWC message version " << dgmVersion
+                                                       << " vs supported version" << MWC_VERSION);
+      return false;
+    }
     r.record_name = "EM_DGM_M_WATER_COLUMN";
     bool full_data = false;
     ds_core_msgs::RawData logme{};
