@@ -31,6 +31,7 @@
 // Created by jvaccaro on 5/28/19.
 //
 #include "lib_kongsberg_em/kongsberg_em2040.h"
+#include "../../src/em_driver_library/EM_datagrams/KMALL_mrz_decoder.h"
 
 #include <list>
 #include <gtest/gtest.h>
@@ -42,6 +43,8 @@ class Em2040Test : public::testing::Test
 {
  public:
   std::string pass_path = ros::param::param<std::string>("pass_path", "kmall_pass.BIN");
+  std::string mrz_version_f_path = ros::param::param<std::string>("mrz_f_path","MRZ_versionF.kmall");
+  std::string mrz_version_h_path = ros::param::param<std::string>("mrz_h_path","MRZ_versionH.kmall");
   std::string fail_path = ros::param::param<std::string>("fail_path", "kmall_fail.BIN");
 //  ds_kongsberg::KongsbergEM2040* node = new ds_kongsberg::KongsbergEM2040();
   static void SetUpTestCase()
@@ -57,6 +60,68 @@ void sendKCtrlData(const std::string &data){
 TEST_F(Em2040Test, alwaysPass)
 {
   EXPECT_TRUE(true);
+}
+
+TEST_F(Em2040Test, parseMRZversionF)
+{
+  FILE *fp = fopen(mrz_version_f_path.c_str(), "r");
+
+  if (fp != nullptr)
+  {
+    // read file size
+    fseek(fp, 0L, SEEK_END);
+    auto size = ftell(fp);
+    rewind(fp);
+    long long int index = 0;
+    auto byte_msg = ds_core_msgs::RawData{};
+    byte_msg.data.resize(size);
+    uint8_t foo[size];
+
+    fread(&foo, 1, size, fp);
+    fclose(fp);
+    for (int i = 0; i < size; i++)
+    {
+      byte_msg.data[i] = foo[i];
+    }
+    byte_msg.ds_header.io_time = ros::Time::now();
+    EMdgmMRZ mrz;
+    bool ok = false;
+    std::tie(ok, mrz) = kmall::read_mrz<EMdgmMRZ>(byte_msg.data.data(), byte_msg.data.size());
+    EXPECT_TRUE(ok);
+  }else{
+    FAIL() << "Failed reading file: " << mrz_version_f_path;
+  }
+}
+
+TEST_F(Em2040Test, parseMRZversionH)
+{
+  FILE *fp = fopen(mrz_version_h_path.c_str(), "r");
+
+  if (fp != nullptr)
+  {
+    // read file size
+    fseek(fp, 0L, SEEK_END);
+    auto size = ftell(fp);
+    rewind(fp);
+    long long int index = 0;
+    auto byte_msg = ds_core_msgs::RawData{};
+    byte_msg.data.resize(size);
+    uint8_t foo[size];
+
+    fread(&foo, 1, size, fp);
+    fclose(fp);
+    for (int i = 0; i < size; i++)
+    {
+      byte_msg.data[i] = foo[i];
+    }
+    byte_msg.ds_header.io_time = ros::Time::now();
+    EMdgm_h::EMdgmMRZ mrz;
+    bool ok = false;
+    std::tie(ok, mrz) = kmall::read_mrz<EMdgm_h::EMdgmMRZ>(byte_msg.data.data(), byte_msg.data.size());
+    EXPECT_TRUE(ok);
+  }else{
+    FAIL() << "Failed reading file: " << mrz_version_h_path;
+  }
 }
 
 TEST_F(Em2040Test, parsePass)

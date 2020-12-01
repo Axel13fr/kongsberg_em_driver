@@ -71,7 +71,6 @@ class KongsbergEM2040  : boost::noncopyable
   bool parse_ipu(std::vector<std::string> fields);
 
   std::pair<bool, ds_core_msgs::RawData> check_and_append_mpartition(ds_core_msgs::RawData);
-  static std::pair<bool, EMdgmMRZ> read_mrz(uint8_t* bytes, int max_length);
   bool read_bist_result(ds_core_msgs::RawData& raw);
   uint8_t read_good_bad_missing(std::string);
 
