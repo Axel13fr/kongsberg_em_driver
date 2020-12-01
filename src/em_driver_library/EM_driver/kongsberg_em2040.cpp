@@ -375,7 +375,6 @@ KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
       }
     } else {
       r.record_name = "EM_DGM_M_RANGE_AND_DEPTH P";
-      ROS_ERROR_STREAM("PING PARTITION");
     }
   }
   else if (msg_type==EM_DGM_M_WATER_COLUMN){
@@ -457,7 +456,7 @@ KongsbergEM2040::check_and_append_mpartition(ds_core_msgs::RawData raw_p)
     // Overwrite the ending values for the length
     d->kmall_partitioned.data.resize(current_length + max_length - count - 4);
     memcpy(ptr + count, d->kmall_partitioned.data.data() + current_length - 4, max_length - count);
-    ROS_ERROR_STREAM("Found partition piece "<<partition->dgmNum<< " of "<<partition->numOfDgms << " with size "<<max_length);
+    ROS_INFO_STREAM("Found partition piece "<<partition->dgmNum<< " of "<<partition->numOfDgms << " with size "<<max_length);
   }
   // If the datagram has completed transmission, then return the partitioned data message.
   if (partition->dgmNum == partition->numOfDgms){
@@ -467,7 +466,7 @@ KongsbergEM2040::check_and_append_mpartition(ds_core_msgs::RawData raw_p)
     *starting_size_ptr = data_size;
     auto ending_size_ptr = reinterpret_cast<uint32_t*>(d->kmall_partitioned.data.data() + d->kmall_partitioned.data.size() - 4);
     *ending_size_ptr = data_size;
-    ROS_ERROR_STREAM("Partition complete! Total size "<< data_size<<" bytes");
+    ROS_INFO_STREAM("Partition complete! Total size "<< data_size<<" bytes");
     return {true, d->kmall_partitioned};
   }
   // Otherwise, assume transmission has not completed and we are waiting for more data.
@@ -1179,7 +1178,12 @@ void KongsbergEM2040::_read_and_publish_mrz(const ds_kongsberg_msgs::KongsbergKM
     mrz_msg.ds_header = r.ds_header;
     d->mrz_pub_.publish(mrz_msg);
 
-    d->pointcloud_pub_.publish(mrz_to_pointcloud(mrz,d->mrz_frame_id_));
+    d->pointcloud_pub_.publish(mrz_to_pointcloud(mrz, d->mrz_frame_id_));
+    auto delta_ping = mrz.cmnPart.pingCnt - d->m_status.ping_num;
+    if (delta_ping > 1)
+    {
+      ROS_ERROR_STREAM("Missed ping between " << d->m_status.ping_num << " and " << mrz.cmnPart.pingCnt);
+    }
     d->m_status.ping_num = mrz.cmnPart.pingCnt;
     mbraw_to_kmstatus(mbr);
   }
