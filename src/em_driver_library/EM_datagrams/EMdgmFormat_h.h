@@ -667,7 +667,7 @@ struct EMdgmMWC_def
 };
 
 #define MWC_VERSION 1
-static constexpr auto MWC_VERSION_H = 0;
+static constexpr auto MWC_VERSION_H = 1;
 typedef struct EMdgmMWC_def EMdgmMWC, *pEMdgmMWC;
 
 
