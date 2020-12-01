@@ -36,6 +36,7 @@
 #include "kongsberg_em2040_util.h"
 #include "../../em_driver_library/EM_datagrams/KMALL_mrz_decoder.h"
 #include "ds_kongsberg_msgs/KongsbergKSSIS.h"
+#include "ds_kongsberg_msgs/KongsbergMRZ.h"
 #include "kongsberg_em2040_strings.h"
 #include "ds_core_msgs/ClockOffset.h"
 #include <regex>
@@ -351,6 +352,7 @@ KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
     d->pinging_timer.start();
     d->m_status.pinging = true;
     r.record_name = "EM_DGM_M_RANGE_AND_DEPTH";
+    r.header.frame_id = d->mrz_frame_id_;
     bool full_data = false;
     ds_core_msgs::RawData logme{};
     std::tie(full_data, logme) = check_and_append_mpartition(raw);
@@ -363,7 +365,7 @@ KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
       {
         _read_and_publish_mrz<EMdgmMRZ>(r,logme.data);
       }
-      else if (dgmVersion == EMdgm_h::MWC_VERSION_H)
+      else if (dgmVersion == EMdgm_h::MRZ_VERSION_H)
       {
         _read_and_publish_mrz<EMdgm_h::EMdgmMRZ>(r,logme.data);
       }else{
@@ -619,6 +621,9 @@ KongsbergEM2040::setupPublishers()
 
   auto kmstatus_topic = ros::param::param<std::string>("~kmstatus_topic", "kmstatus");
   d->kmstatus_pub_ = d->nh_.advertise<ds_kongsberg_msgs::KongsbergStatus>(name + "/" + kmstatus_topic, 1000);
+
+  auto mrz_topic = ros::param::param<std::string>("~mrz_topic", "mrz");
+  d->mrz_pub_ = d->nh_.advertise<ds_kongsberg_msgs::KongsbergMRZ>(name + "/" + mrz_topic, 1000);
 }
 
 void
@@ -1168,7 +1173,13 @@ void KongsbergEM2040::_read_and_publish_mrz(const ds_kongsberg_msgs::KongsbergKM
     mbr.header = r.header;
     mbr.ds_header = r.ds_header;
     d->mbraw_pub_.publish(mbr);
-    d->pointcloud_pub_.publish(mrz_to_pointcloud(&mrz,d->mrz_frame_id_));
+
+    auto mrz_msg = mrz_to_msg(mrz);
+    mrz_msg.header = r.header;
+    mrz_msg.ds_header = r.ds_header;
+    d->mrz_pub_.publish(mrz_msg);
+
+    d->pointcloud_pub_.publish(mrz_to_pointcloud(mrz,d->mrz_frame_id_));
     d->m_status.ping_num = mrz.cmnPart.pingCnt;
     mbraw_to_kmstatus(mbr);
   }

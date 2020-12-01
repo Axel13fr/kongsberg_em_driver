@@ -34,6 +34,7 @@
 #pragma once
 
 #include "lib_kongsberg_em/kongsberg_em2040.h"
+#include <tf/transform_broadcaster.h>
 #include <mutex>
 
 namespace kongsberg_em{
@@ -57,6 +58,7 @@ struct KongsbergEM2040Private{
 //  ros::Publisher watercolumn_pub_;
   ros::Publisher pointcloud_pub_;
   ros::Publisher offset_pub_;
+  ros::Publisher mrz_pub_;
 
   ros::Publisher kssis_pub_;
   ros::Publisher kmstatus_pub_;
@@ -112,5 +114,6 @@ struct KongsbergEM2040Private{
 
 //  XML params
 //  int xml_count = 0;
+
 };
 }
