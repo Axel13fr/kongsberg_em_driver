@@ -35,6 +35,7 @@
 #include <list>
 #include <gtest/gtest.h>
 #include <ros/param.h>
+#include <log4cxx/logger.h>
 
 // Test fixture
 class Em2040Test : public::testing::Test
@@ -123,6 +124,7 @@ TEST_F(Em2040Test, parsePass)
       byte_msg.ds_header.io_time = ros::Time::now();
       ok = driver.parse_data(byte_msg);
     }
+    ROS_ERROR_STREAM_COND(pass != ok,"Failed on message of size " << size);
     EXPECT_EQ(pass, ok);
     index += size;
   }
@@ -133,6 +135,13 @@ TEST_F(Em2040Test, parsePass)
 // Run all the tests that were declared with TEST()
 int main(int argc, char** argv)
 {
+  // ROS logs in unit tests
+  ROSCONSOLE_AUTOINIT;
+
+  /* To enable DEBUG logging: */
+//  log4cxx::LoggerPtr my_logger = log4cxx::Logger::getLogger(ROSCONSOLE_DEFAULT_NAME);
+//  my_logger->setLevel(ros::console::g_level_lookup[ros::console::levels::Debug]);
+
   testing::InitGoogleTest(&argc, argv);
   ros::init(argc, argv, "test_em2040_parse");
   auto ret = RUN_ALL_TESTS();

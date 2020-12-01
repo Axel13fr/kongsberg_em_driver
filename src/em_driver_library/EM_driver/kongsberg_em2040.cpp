@@ -34,12 +34,12 @@
 #include "lib_kongsberg_em/kongsberg_em2040.h"
 #include "kongsberg_em2040_private.h"
 #include "kongsberg_em2040_util.h"
+#include "../../em_driver_library/EM_datagrams/KMALL_mrz_decoder.h"
 #include "ds_kongsberg_msgs/KongsbergKSSIS.h"
 #include "kongsberg_em2040_strings.h"
 #include "ds_core_msgs/ClockOffset.h"
 #include <regex>
 
-#include "ds_kongsberg_msgs/KongsbergKMAllRecord.h"
 #include <ros/this_node.h>
 #include <ros/param.h>
 
@@ -358,25 +358,18 @@ KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
       _write_kmall_data(logme.data);
       // Assume that the EMdgmMpartition_def structure will not change so
       // it's safe to collect and write all partitions of this structure even without a
-      // compatible version: inform but not try to deserialize
-      if (dgmVersion != MRZ_VERSION)
+      // compatible version: inform but not try to deserialize until version check
+      if (dgmVersion == MRZ_VERSION_F)
       {
-        ROS_ERROR_STREAM("Received MRZ message version " << dgmVersion
-                                                         << " vs supported version" << MRZ_VERSION);
-        return false;
+        _read_and_publish_mrz<EMdgmMRZ>(r,logme.data);
       }
-
-      EMdgmMRZ mrz;
-      bool ok = false;
-      std::tie(ok, mrz) = read_mrz(logme.data.data(),logme.data.size());
-      if (ok){
-        auto mbr = mrz_to_mb_raw(&mrz);
-        mbr.header = r.header;
-        mbr.ds_header = r.ds_header;
-        d->mbraw_pub_.publish(mbr);
-        d->pointcloud_pub_.publish(mrz_to_pointcloud(&mrz,d->mrz_frame_id_));
-        d->m_status.ping_num = mrz.cmnPart.pingCnt;
-        mbraw_to_kmstatus(mbr);
+      else if (dgmVersion == EMdgm_h::MWC_VERSION_H)
+      {
+        _read_and_publish_mrz<EMdgm_h::EMdgmMRZ>(r,logme.data);
+      }else{
+        ROS_ERROR_STREAM("Received MRZ unsupported message version "
+                         << std::to_string(dgmVersion));
+        return false;
       }
     } else {
       r.record_name = "EM_DGM_M_RANGE_AND_DEPTH P";
@@ -392,10 +385,14 @@ KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
       _write_kmall_data(logme.data);
       // Assume that the EMdgmMpartition_def structure will not change so
       // it's safe to collect and write all partitions of this structure even without a
-      // compatible structure definition: inform but not try to deserialize
-      if (dgmVersion != MWC_VERSION)
-      {
-        ROS_ERROR_STREAM("Received MWC message version " << dgmVersion << " vs supported version" << MWC_VERSION);
+      // compatible structure definition: inform but not try to deserialize until version check
+      if(dgmVersion == MWC_VERSION_F){
+        //TODO: decode water column ?
+      }else if(dgmVersion == EMdgm_h::MWC_VERSION_H){
+        //TODO: decode water column ?
+      }else{
+        ROS_ERROR_STREAM("Received MWC unsupported message version "
+                         << std::to_string(dgmVersion));
         return false;
       }
     }
@@ -473,142 +470,6 @@ KongsbergEM2040::check_and_append_mpartition(ds_core_msgs::RawData raw_p)
   }
   // Otherwise, assume transmission has not completed and we are waiting for more data.
   return {false, {}};
-};
-
-std::pair<bool, EMdgmMRZ>
-KongsbergEM2040::read_mrz(uint8_t* ptr, int max_length)
-{
-
-  EMdgmMRZ mrz;
-  memset(&mrz, 0, sizeof(mrz));
-  int count = 0;
-
-  mrz.header = *(reinterpret_cast<EMdgmHeader*>(ptr + count));
-  count += sizeof(mrz.header);
-  if (count>max_length){
-    ROS_ERROR_STREAM("*After header* In read_mrz, count="<<count<<" exceeded max_length="<<max_length);
-    return {false, {}};
-  }
-  mrz.partition = *(reinterpret_cast<EMdgmMpartition*>(ptr + count));
-  count += sizeof(mrz.partition);
-  if (count>max_length){
-    ROS_ERROR_STREAM("*After partition* In read_mrz, count="<<count<<" exceeded max_length="<<max_length);
-    return {false, {}};
-  }
-  mrz.cmnPart = *(reinterpret_cast<EMdgmMbody*>(ptr + count));
-  count += mrz.cmnPart.numBytesCmnPart;
-  if (count>max_length){
-    ROS_ERROR_STREAM("*After Common Part* In read_mrz, count="<<count<<" exceeded max_length="<<max_length);
-    return {false, {}};
-  }
-  mrz.pingInfo = *(reinterpret_cast<EMdgmMRZ_pingInfo*>(ptr + count));
-  count += mrz.pingInfo.numBytesInfoData;
-  if (count>max_length){
-    ROS_ERROR_STREAM("*After Ping Info* In read_mrz, count="<<count<<" exceeded max_length="<<max_length);
-    return {false, {}};
-  }
-  for (int i=0; i<mrz.pingInfo.numTxSectors; i++){
-    mrz.sectorInfo[i] = *(reinterpret_cast<EMdgmMRZ_txSectorInfo*>(ptr + count));
-    count += mrz.pingInfo.numBytesPerTxSector;
-    if (count>max_length){
-      ROS_ERROR_STREAM("*After Sector["<<i<<"]* In read_mrz, count="<<count<<" exceeded max_length="<<max_length);
-      return {false, {}};
-    }
-  }
-  mrz.rxInfo = *(reinterpret_cast<EMdgmMRZ_rxInfo*>(ptr + count));
-  count += mrz.rxInfo.numBytesRxInfo;
-  if (count>max_length){
-    ROS_ERROR_STREAM("*After RXInfo* In read_mrz, count="<<count<<" exceeded max_length="<<max_length);
-    return {false, {}};
-  }
-  for (int i=0; i<mrz.rxInfo.numExtraDetectionClasses; i++){
-    mrz.extraDetClassInfo[i] = *(reinterpret_cast<EMdgmMRZ_extraDetClassInfo*>(ptr + count));
-    count += mrz.rxInfo.numBytesPerClass;
-    if (count>max_length){
-      ROS_ERROR_STREAM("*After Extra Det["<<i<<"]* In read_mrz, count="<<count<<" exceeded max_length="<<max_length);
-      return {false, {}};
-    }
-  }
-  int SIsamples = 0;
-  for (int i=0; i<mrz.rxInfo.numSoundingsMaxMain+mrz.rxInfo.numExtraDetections; i++){
-    mrz.sounding[i] = *(reinterpret_cast<EMdgmMRZ_sounding*>(ptr + count));
-    count += mrz.rxInfo.numBytesPerSounding;
-    SIsamples +=mrz.sounding[i].SInumSamples;
-    if (count>max_length){
-      ROS_ERROR_STREAM("*After sounding["<<i<<"]* In read_mrz, count="<<count<<" exceeded max_length="<<max_length);
-      return {false, {}};
-    }
-  }
-  for (int i=0; i<SIsamples; i++){
-    mrz.SIsample_desidB[i] = *(reinterpret_cast<uint16_t*>(ptr + count));
-    count += sizeof(uint16_t);
-    if (count>max_length){
-      ROS_ERROR_STREAM("*After SI Samp["<<i<<"]* In read_mrz, count="<<count<<" exceeded max_length="<<max_length);
-      return {false, {}};
-    }
-  }
-  auto check_length = *(reinterpret_cast<uint32_t*>(ptr + count));
-  count += sizeof(uint32_t);
-  //ROS_ERROR_STREAM("Count: " << count << " max_length: "<<max_length);
-  //ROS_ERROR_STREAM("Header len: " << mrz.header.numBytesDgm << " Check len: "<<check_length);
-  //ROS_ERROR_STREAM("PING TIME: "<<mrz.header.time_sec);
-  return {true, mrz};
-}
-
-ds_multibeam_msgs::MultibeamRaw
-KongsbergEM2040::mrz_to_mb_raw(EMdgmMRZ* msg)
-{
-  ds_multibeam_msgs::MultibeamRaw mb{};
-  ros::Time t;
-  mb.header.stamp = t.fromSec(msg->header.time_sec + msg->header.time_nanosec / 1.0e9);
-
-  int num_soundings = msg->rxInfo.numSoundingsMaxMain + msg->rxInfo.numExtraDetections;
-  mb.beamflag.resize(num_soundings);
-  mb.twowayTravelTime.resize(num_soundings);
-  mb.txDelay.resize(num_soundings);
-  mb.intensity.resize(num_soundings);
-  mb.angleAlongTrack.resize(num_soundings);
-  mb.angleAcrossTrack.resize(num_soundings);
-  mb.beamwidthAlongTrack.resize(num_soundings);
-  mb.beamwidthAcrossTrack.resize(num_soundings);
-  for (int i = 0; i < num_soundings; i++) {
-    mb.beamflag[i] = (msg->sounding[i].detectionType == 2 ? mb.BEAM_BAD_SONAR : mb.BEAM_OK);
-    mb.twowayTravelTime[i] = msg->sounding[i].twoWayTravelTime_sec;
-    mb.txDelay[i] = msg->sounding[i].twoWayTravelTimeCorrection_sec;
-    mb.intensity[i] = msg->sounding[i].reflectivity1_dB;
-    int sector = msg->sounding[i].txSectorNumb;
-    if (sector < msg->pingInfo.numTxSectors){
-      mb.angleAlongTrack[i] = deg_to_rad(msg->sectorInfo[sector].tiltAngleReTx_deg); // use sector index to get tilt angle, then convert to rad
-    }
-    mb.angleAcrossTrack[i] = deg_to_rad(msg->sounding[i].beamAngleReRx_deg); // convert deg to rad
-    mb.beamwidthAlongTrack[i] = 0;
-    mb.beamwidthAcrossTrack[i] = deg_to_rad(msg->sounding[i].WCNomBeamAngleAcross_deg);
-  }
-
-  mb.soundspeed = msg->pingInfo.soundSpeedAtTxDepth_mPerSec;
-  return mb;
-}
-
-sensor_msgs::PointCloud2 KongsbergEM2040::mrz_to_pointcloud(EMdgmMRZ *msg, const std::string &frame_id)
-{
-  pcl::PointCloud<pcl::PointXYZI> pcl;
-  int num_soundings = msg->rxInfo.numSoundingsMaxMain + msg->rxInfo.numExtraDetections;
-  pcl::PointXYZI pt;
-  for (int i = 0; i < num_soundings; i++)
-  {
-    pt.x = msg->sounding[i].x_reRefPoint_m;
-    pt.y = msg->sounding[i].y_reRefPoint_m;
-    pt.z = msg->sounding[i].z_reRefPoint_m;
-    //    ROS_WARN("Point: " << pt);
-    pt.intensity = msg->sounding[i].sourceLevelApplied_dB;
-    pcl.push_back(pt);
-  }
-
-  sensor_msgs::PointCloud2 m;
-  pcl::toROSMsg(pcl, m);
-  m.header.stamp = ros::Time().fromSec(msg->header.time_sec + msg->header.time_nanosec / 1.0e9);
-  m.header.frame_id = frame_id;
-  return m;
 }
 
 void
@@ -966,8 +827,6 @@ KongsbergEM2040::_load_xml_cmd(ds_kongsberg_msgs::LoadXmlCmd::Request &req, ds_k
 void
 KongsbergEM2040::_on_kmall_data(ds_core_msgs::RawData raw)
 {
-
-
   if (!parse_data(raw)){
     ROS_ERROR_STREAM("KMAll data parse failed OR incomplete packet");
   } else {
@@ -1295,6 +1154,24 @@ KongsbergEM2040::_on_pinging_timeout(const ros::TimerEvent&)
   }
   d->m_status.pinging = false;
   d->kmstatus_pub_.publish(d->m_status);
+}
+
+template <class EMdgmMRZ_S>
+void KongsbergEM2040::_read_and_publish_mrz(const ds_kongsberg_msgs::KongsbergKMAllRecord &r,
+                                            std::vector<uint8_t> &data)
+{
+  EMdgmMRZ_S mrz;
+  bool ok = false;
+  std::tie(ok, mrz) = kmall::read_mrz<EMdgmMRZ_S>(data.data(),data.size());
+  if (ok){
+    auto mbr = mrz_to_mb_raw(&mrz);
+    mbr.header = r.header;
+    mbr.ds_header = r.ds_header;
+    d->mbraw_pub_.publish(mbr);
+    d->pointcloud_pub_.publish(mrz_to_pointcloud(&mrz,d->mrz_frame_id_));
+    d->m_status.ping_num = mrz.cmnPart.pingCnt;
+    mbraw_to_kmstatus(mbr);
+  }
 }
 
 } //namespace

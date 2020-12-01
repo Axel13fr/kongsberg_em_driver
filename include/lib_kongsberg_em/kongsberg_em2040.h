@@ -46,6 +46,7 @@
 #include "ds_kongsberg_msgs/BistCmd.h"
 #include "ds_kongsberg_msgs/LoadXmlCmd.h"
 #include "ds_kongsberg_msgs/KongsbergStatus.h"
+#include "ds_kongsberg_msgs/KongsbergKMAllRecord.h"
 
 #include <ds_multibeam_msgs/MultibeamRaw.h>
 #include <boost/utility.hpp>
@@ -74,9 +75,6 @@ class KongsbergEM2040  : boost::noncopyable
   bool read_bist_result(ds_core_msgs::RawData& raw);
   uint8_t read_good_bad_missing(std::string);
 
-  static ds_multibeam_msgs::MultibeamRaw mrz_to_mb_raw(EMdgmMRZ* msg);
-  static sensor_msgs::PointCloud2 mrz_to_pointcloud(EMdgmMRZ* msg, const std::string &frame_id);
-
   void mbraw_to_kmstatus(ds_multibeam_msgs::MultibeamRaw raw);
 
   // Calls all the ROS setup functions at once(publishers, services, parameters, timers)
@@ -103,6 +101,10 @@ class KongsbergEM2040  : boost::noncopyable
   std::string _send_kctrl_param(std::string param, T1 param_val);
   template <class T1>
   std::string _send_kctrl_param(std::vector<std::string> params, std::vector<T1> vals);
+  template <class EMdgmMRZ_S>
+  void _read_and_publish_mrz(const ds_kongsberg_msgs::KongsbergKMAllRecord &r,
+                             std::vector<uint8_t> &data);
+
   void _startup_sequence();
   void _print_bist(std::string name, std::string status, std::string msg);
   void _run_next_bist();

@@ -1,13 +1,15 @@
-/*h+*/
-#ifndef _EMDGMFORMAT_H
-#define _EMDGMFORMAT_H
+#pragma once
 
-#include "stdint.h"
+/*h+*/
+
+#include <stdint.h>
 
 #ifndef _VXW
 #pragma pack(4)
 #endif
 
+namespace EMdgm_h
+{
 /*
 
   Revision History:
@@ -17,23 +19,26 @@
   03  05 JUL 2017  Rev C.
   04  08 DES 2017  Rev D.
   05  25 MAY 2018  Rev E.
-  06  16 NOV 2018  Rev F
+  06  16 NOV 2018  Rev F.
+  07  01 NOV 2019  Rev G.
+  08  20 MAR 2020  Rev H.
  */
 
-#define EM_DGM_FORMAT_VERSION "Rev F 2018-11-16"
+#define EM_DGM_FORMAT_VERSION "Rev H 2020-03-20"
 #define MAX_NUM_BEAMS 1024
 #define MAX_EXTRA_DET 1024
 #define MAX_EXTRA_DET_CLASSES 11
 #define MAX_SIDESCAN_SAMP 60000
 #define MAX_SIDESCAN_EXTRA_SAMP 15000
 #define MAX_NUM_TX_PULSES 9
-#define MAX_ATT_SAMPLES  148
+#define MAX_ATT_SAMPLES 148
 #define MAX_SVP_POINTS 2000
 #define MAX_SVT_SAMPLES 1
 #define MAX_DGM_SIZE 64000
 #define MAX_NUM_MST_DGMS 256
 #define MAX_NUM_MWC_DGMS 256
 #define MAX_NUM_MRZ_DGMS 32
+#define MAX_NUM_FCF_DGMS 1
 #define MAX_SPO_DATALENGTH 250
 #define MAX_ATT_DATALENGTH 250
 #define MAX_SVT_DATALENGTH 64
@@ -42,6 +47,8 @@
 #define MAX_SHI_DATALENGTH 32
 #define MAX_CPO_DATALENGTH 250
 #define MAX_CHE_DATALENGTH 64
+#define MAX_F_FILENAME_LENGTH 64
+#define MAX_F_FILE_SIZE 63000
 #define UNAVAILABLE_POSFIX 0xffff
 #define UNAVAILABLE_LATITUDE 200.0f
 #define UNAVAILABLE_LONGITUDE 200.0f
@@ -52,29 +59,29 @@
             Datagram names
  *********************************************/
 
-/* I - datagrams */
-#define EM_DGM_I_INSTALLATION_PARAM        "#IIP"
-#define EM_DGM_I_OP_RUNTIME                "#IOP"
-
+/* I-datagrams */
+#define EM_DGM_I_INSTALLATION_PARAM "#IIP"
+#define EM_DGM_I_OP_RUNTIME "#IOP"
 
 /* S-datagrams */
-#define EM_DGM_S_POSITION                  "#SPO"
-#define EM_DGM_S_KM_BINARY                 "#SKM"
-#define EM_DGM_S_SOUND_VELOCITY_PROFILE    "#SVP"
+#define EM_DGM_S_POSITION "#SPO"
+#define EM_DGM_S_KM_BINARY "#SKM"
+#define EM_DGM_S_SOUND_VELOCITY_PROFILE "#SVP"
 #define EM_DGM_S_SOUND_VELOCITY_TRANSDUCER "#SVT"
-#define EM_DGM_S_CLOCK                     "#SCL"
-#define EM_DGM_S_DEPTH                     "#SDE"
-#define EM_DGM_S_HEIGHT                    "#SHI"
-
+#define EM_DGM_S_CLOCK "#SCL"
+#define EM_DGM_S_DEPTH "#SDE"
+#define EM_DGM_S_HEIGHT "#SHI"
 
 /* M-datagrams */
-#define EM_DGM_M_RANGE_AND_DEPTH        "#MRZ"
-#define EM_DGM_M_WATER_COLUMN           "#MWC"
-
+#define EM_DGM_M_RANGE_AND_DEPTH "#MRZ"
+#define EM_DGM_M_WATER_COLUMN "#MWC"
 
 /* C-datagrams */
-#define EM_DGM_C_POSITION         "#CPO"
-#define EM_DGM_C_HEAVE            "#CHE"
+#define EM_DGM_C_POSITION "#CPO"
+#define EM_DGM_C_HEAVE "#CHE"
+
+/* F-datagrams */
+#define EM_DGM_F_CALIBRATION_FILE "#FCF"
 
 /*********************************************
 
@@ -258,8 +265,8 @@ struct EMdgmSVP_def
 typedef struct EMdgmSVP_def EMdgmSVP, *pEMdgmSVP;
 
 /************************************
-* #SVT - Sensor sound Velocity measured at Transducer
-************************************/
+ * #SVT - Sensor sound Velocity measured at Transducer
+ ************************************/
 struct EMdgmSVTinfo_def
 {
   uint16_t numBytesInfoPart;
@@ -356,7 +363,7 @@ typedef struct EMdgmSHIdataFromSensor_def EMdgmSHIdataFromSensor, *pEMdgmSHIdata
 
 struct EMdgmSHI_def
 {
-  struct EMdgmHeader_def  header;
+  struct EMdgmHeader_def header;
   struct EMdgmScommon_def cmnPart;
   struct EMdgmSHIdataFromSensor_def sensData;
 };
@@ -449,6 +456,10 @@ struct EMdgmMRZ_pingInfo_def
   double latitude_deg;
   double longitude_deg;
   float ellipsoidHeightReRefPoint_m;
+  float bsCorrectionOffset_dB;
+  uint8_t lambertsLawApplied;
+  uint8_t iceWindow;
+  uint16_t activeModes;
 };
 
 typedef struct EMdgmMRZ_pingInfo_def EMdgmMRZ_pingInfo, *pEMdgmMRZ_pingInfo;
@@ -469,6 +480,9 @@ struct EMdgmMRZ_txSectorInfo_def
   uint8_t pulseShading;
   uint8_t signalWaveForm;
   uint16_t padding1;
+  float highVoltageLevel_dB;
+  float sectorTrackingCorr_dB;
+  float effectiveSignalLength_sec;
 };
 
 typedef struct EMdgmMRZ_txSectorInfo_def EMdgmMRZ_txSectorInfo, *pEMdgmMRZ_txSectorInfo;
@@ -502,7 +516,6 @@ typedef struct EMdgmMRZ_extraDetClassInfo_def EMdgmMRZ_extraDetClassInfo, *pEMdg
 
 struct EMdgmMRZ_sounding_def
 {
-
   uint16_t soundingIndex;
   uint8_t txSectorNumb;
   uint8_t detectionType;
@@ -549,7 +562,6 @@ typedef struct EMdgmMRZ_sounding_def EMdgmMRZ_sounding, *pEMdgmMRZ_sounding;
 
 struct EMdgmMRZ_extraSI_def
 {
-
   uint16_t portStartRange_samples;
   uint16_t numPortSamples;
   int16_t portSIsample_desidB[MAX_SIDESCAN_EXTRA_SAMP];
@@ -569,12 +581,12 @@ struct EMdgmMRZ_def
   struct EMdgmMRZ_txSectorInfo_def sectorInfo[MAX_NUM_TX_PULSES];
   struct EMdgmMRZ_rxInfo_def rxInfo;
   struct EMdgmMRZ_extraDetClassInfo_def extraDetClassInfo[MAX_EXTRA_DET_CLASSES];
-  struct EMdgmMRZ_sounding_def sounding[MAX_NUM_BEAMS+MAX_EXTRA_DET];
+  struct EMdgmMRZ_sounding_def sounding[MAX_NUM_BEAMS + MAX_EXTRA_DET];
   int16_t SIsample_desidB[MAX_SIDESCAN_SAMP];
 };
 
-#define MRZ_VERSION 0
-static constexpr auto MRZ_VERSION_F = 0;
+#define MRZ_VERSION 2
+static constexpr auto MRZ_VERSION_H = 2;
 typedef struct EMdgmMRZ_def EMdgmMRZ, *pEMdgmMRZ;
 
 /************************************
@@ -623,7 +635,8 @@ struct EMdgmMWCrxBeamData_def
   uint16_t detectedRangeInSamples;
   uint16_t beamTxSectorNum;
   uint16_t numSampleData;
-  int8_t  *sampleAmplitude05dB_p;
+  float detectedRangeInSamplesHighResolution;
+  int8_t *sampleAmplitude05dB_p;
 };
 
 typedef struct EMdgmMWCrxBeamData_def EMdgmMWCrxBeamData, *pEMdgmMWCrxBeamData;
@@ -653,11 +666,9 @@ struct EMdgmMWC_def
   struct EMdgmMWCrxBeamData_def *beamData_p;
 };
 
-#define MWC_VERSION 0
-static constexpr auto MWC_VERSION_F = 0;
+#define MWC_VERSION 1
+static constexpr auto MWC_VERSION_H = 0;
 typedef struct EMdgmMWC_def EMdgmMWC, *pEMdgmMWC;
-
-
 
 
 /*********************************************
@@ -707,13 +718,45 @@ typedef struct EMdgmCHEdata_def EMdgmCHEdata, *pEMdgmCHEdata;
 
 struct EMdgmCHE_def
 {
-  struct EMdgmHeader_def  header;
+  struct EMdgmHeader_def header;
   struct EMdgmMbody_def cmnPart;
   struct EMdgmCHEdata_def data;
 };
 
 #define CHE_VERSION 0
 typedef struct EMdgmCHE_def EMdgmCHE, *pEMdgmCHE;
+
+
+/*********************************************
+
+   File datagrams
+
+ *********************************************/
+
+struct EMdgmFcommon_def
+{
+  uint16_t numBytesCmnPart;
+  int8_t fileStatus;
+  uint8_t padding1;
+  uint32_t numBytesFile;
+  uint8_t fileName[MAX_F_FILENAME_LENGTH];
+};
+
+typedef struct EMdgmFcommon_def EMdgmFcommon, *pEMdgmFcommon;
+
+/********************************************
+    #FCF - Backscatter calibration file datagram
+ ********************************************/
+struct EMdgmFCF_def
+{
+  struct EMdgmHeader_def header;
+  struct EMdgmMpartition_def partition;
+  struct EMdgmFcommon_def cmnPart;
+  uint8_t bsCalibrationFile[MAX_F_FILE_SIZE];
+};
+
+typedef struct EMdgmFCF_def EMdgmFCF, *pEMdgmFCF;
+#define FCF_VERSION 0
 
 
 /*********************************************
@@ -764,15 +807,15 @@ struct EMdgmIB_def
   uint8_t BISTInfo;
   uint8_t BISTStyle;
   uint8_t BISTNumber;
-  int8_t  BISTStatus;
+  int8_t BISTStatus;
   uint8_t BISTText;
 };
 
 #define BIST_VERSION 0
 typedef struct EMdgmIB_def dgm_IB, *pdgm_IB;
 
-#ifndef _VXW
-#pragma pack()
-#endif
-#endif
+}; //namespace
 
+ #ifndef _VXW
+ #pragma pack()
+ #endif
