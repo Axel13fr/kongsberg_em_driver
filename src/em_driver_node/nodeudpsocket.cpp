@@ -36,7 +36,7 @@ NodeUdpSocket::NodeUdpSocket(boost::asio::io_service& io_service, const std::str
     auto listen_address = address::from_string("0.0.0.0");
     udp::endpoint listen_endpoint(listen_address, udp_rx_port);
     socket_->open(listen_endpoint.protocol());
-    socket_->set_option(udp::socket::reuse_address(true));
+//    socket_->set_option(udp::socket::reuse_address(true));
     socket_->bind(listen_endpoint);
 
     socket_->set_option(multicast::join_group(udp_ip));

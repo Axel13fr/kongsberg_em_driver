@@ -93,8 +93,11 @@ struct KongsbergEM2040Private{
 //  std::string kmall_filename;
 //  std::string kmall_filename_base;
   std::ofstream* kmall_stream = NULL;
-  // If there's a larger kmall datagram that gets partitioned, we need to fix it
 
+  // Diagnostics
+  bool m_decodingFailed = false;
+
+  // If there's a larger kmall datagram that gets partitioned, we need to fix it
   ds_core_msgs::RawData kmall_partitioned;
 //  int kmall_file_count = 0;
 //  float kmall_max_size_gb;

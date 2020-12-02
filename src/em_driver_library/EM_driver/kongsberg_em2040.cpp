@@ -1180,12 +1180,15 @@ void KongsbergEM2040::_read_and_publish_mrz(const ds_kongsberg_msgs::KongsbergKM
 
     d->pointcloud_pub_.publish(mrz_to_pointcloud(mrz, d->mrz_frame_id_));
     auto delta_ping = mrz.cmnPart.pingCnt - d->m_status.ping_num;
-    if (delta_ping > 1)
-    {
-      ROS_ERROR_STREAM("Missed ping between " << d->m_status.ping_num << " and " << mrz.cmnPart.pingCnt);
-    }
+    ROS_ERROR_STREAM_COND((delta_ping > 1) && (d->m_status.ping_num != 0),
+                          "Missed ping between " << d->m_status.ping_num << " and " << mrz.cmnPart.pingCnt);
+
     d->m_status.ping_num = mrz.cmnPart.pingCnt;
     mbraw_to_kmstatus(mbr);
+  }
+  else
+  {
+    m_decodingFailed = true;
   }
 }
 
