@@ -1188,7 +1188,7 @@ void KongsbergEM2040::_read_and_publish_mrz(const ds_kongsberg_msgs::KongsbergKM
   }
   else
   {
-    m_decodingFailed = true;
+    d->m_decodingFailed = true;
   }
 }
 
