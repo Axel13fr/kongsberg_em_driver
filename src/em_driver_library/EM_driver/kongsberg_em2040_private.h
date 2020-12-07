@@ -71,7 +71,6 @@ struct KongsbergEM2040Private{
   // KCtrl startup info
 //  std::string sounder_name_;
 //  bool started_;
-  std::mutex m_status_mutex;
   ds_kongsberg_msgs::KongsbergStatus m_status;
   // Take out the things from mutex control that ought to be static.
   // Only use the mutex to change things
@@ -94,11 +93,16 @@ struct KongsbergEM2040Private{
 //  std::string kmall_filename_base;
   std::ofstream* kmall_stream = NULL;
 
+  uint16_t pck_cnt = 0;
+
   // Diagnostics
   bool m_decodingFailed = false;
 
   // If there's a larger kmall datagram that gets partitioned, we need to fix it
   ds_core_msgs::RawData kmall_partitioned;
+  uint16_t kmall_dgmNum = 0;
+  uint16_t kmall_numOfDgms = 0;
+
 //  int kmall_file_count = 0;
 //  float kmall_max_size_gb;
 //  float kmall_current_size_gb;

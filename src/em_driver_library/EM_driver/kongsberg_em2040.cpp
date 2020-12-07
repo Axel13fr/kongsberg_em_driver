@@ -278,7 +278,6 @@ KongsbergEM2040::read_kmall_dgm_from_kctrl(int type,const ds_core_msgs::RawData&
 bool
 KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
 {
-
   auto data_size = raw.data.size();
   auto min_size = sizeof(EMdgmHeader);
   if (data_size < min_size){
@@ -415,48 +414,92 @@ KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
   return true;
 }
 
-std::pair<bool, ds_core_msgs::RawData>
-KongsbergEM2040::check_and_append_mpartition(ds_core_msgs::RawData raw_p)
+double kongsberg_em::KongsbergEM2040::_timeToLastPartition(const EMdgmHeader *hdr)
 {
-  // Returns a bool and a RawData msg.
-  // If the datagram is not partitioned, then it returns the datagram.
-  // If the datagram is partitioned, then
-  // True means that the datagram is complete (SHOULD BE LOGGED AND PARSED)
-  // False means that the datagram is incomplete (NO LOGGING)
+  // Init previous time to now for the first time only (static variable!)
+  static ros::Time prev_t = ros::Time::now();
+
+  ros::Time t;
+  t.fromSec(hdr->time_sec + hdr->time_nanosec / 1.0e9);
+  auto delta_t = t - prev_t;
+  prev_t = t;
+  // Convert to milliseconds
+  return delta_t.toNSec() / 1.0e6;
+}
+
+std::pair<bool, ds_core_msgs::RawData>
+KongsbergEM2040::check_and_append_mpartition(ds_core_msgs::RawData& raw_p)
+{
 
   auto ptr = raw_p.data.data();
   auto max_length = raw_p.data.size();
   int count = 0;
-  auto hdr = reinterpret_cast<EMdgmHeader*>(ptr + count);
+  auto hdr = reinterpret_cast<EMdgmHeader *>(ptr + count);
   count += sizeof(EMdgmHeader);
   // ROS_ERROR_STREAM("PARTITIONED TIME: "<<hdr->time_sec);
-  auto partition = reinterpret_cast<EMdgmMpartition*>(ptr + count);
+
+  auto delta_t_ms = _timeToLastPartition(hdr);
+
+  auto partition = reinterpret_cast<EMdgmMpartition *>(ptr + count);
   count += sizeof(EMdgmMpartition);
   // If the datagram isn't partitioned, then return itself immediately!
-  if (partition->dgmNum == 1 && partition->numOfDgms == 1){
+  if (partition->dgmNum == 1 && partition->numOfDgms == 1)
+  {
+    d->kmall_dgmNum = 0;
+    d->kmall_numOfDgms = 0;
     return {true, raw_p};
   }
   // If it's the first in a sequence, then clear out the buffer and resize it to the current size.
   // Set its partition values to 1 and 1 respectively.
-  else if (partition->dgmNum == 1 && partition->numOfDgms > 1){
+  else if (partition->dgmNum == 1 && partition->numOfDgms > 1)
+  {
+    d->kmall_dgmNum = partition->dgmNum;
+    d->kmall_numOfDgms = partition->numOfDgms;
+    // Rewrite number of Dgms: the reconstructed complete datagram will only have one part
     partition->dgmNum = 1;
     partition->numOfDgms = 1;
     d->kmall_partitioned.data.resize(max_length);
     d->kmall_partitioned.data = raw_p.data;
-    ROS_INFO_STREAM("Found partition piece "<<partition->dgmNum<< " of "<<partition->numOfDgms << " with size "<<max_length);
+    d->kmall_dgmNum = 1;
+    ROS_INFO_STREAM("Part " << d->kmall_dgmNum << "/" << d->kmall_numOfDgms << " with size " << max_length << " DeltaT "
+                            << delta_t_ms);
     return {false, {}};
   }
   // If it's a following datagram, then append it starting AFTER the partition.
-  else if (partition->dgmNum > 1){
-    auto current_length = d->kmall_partitioned.data.size();
-    if (current_length == 0){
-      ROS_INFO_STREAM("MISSED EARLIER PARTITION PACKET... IGNORING LATER PACKETS");
+  else if (partition->dgmNum > 1)
+  {
+    // Datagrams partitions shall be received sequentially
+    auto expected_dgmNum = d->kmall_dgmNum + 1;
+    if ((d->kmall_dgmNum + 1) == partition->dgmNum)
+    {
+      auto current_length = d->kmall_partitioned.data.size();
+      if (current_length == 0)
+      {
+        ROS_ERROR_STREAM("MISSED EARLIER PARTITION PACKET... IGNORING LATER PACKETS");
+      }
+
+      if (delta_t_ms > 0)
+      {
+        ROS_ERROR_STREAM("Packet Timestamp missmatch on reconstruction: dropped !");
+        d->kmall_dgmNum = 0;
+        d->kmall_numOfDgms = 0;
+        return {false, {}};
+      }
+      // Resize and copy everything except the new header/partition
+      // Overwrite the ending values for the length
+      d->kmall_partitioned.data.resize(current_length + max_length - count - 4);
+      memcpy(ptr + count, d->kmall_partitioned.data.data() + current_length - 4, max_length - count);
+      ROS_INFO_STREAM("Next Part " << partition->dgmNum<< "/"<< partition->numOfDgms << " with size "<<max_length
+                                  <<  " DeltaT " << delta_t_ms);
+      d->kmall_dgmNum = partition->dgmNum;
+    }else{
+      ROS_ERROR_STREAM("MISSED PARTITION PACKET: expected part " << expected_dgmNum
+                                                                 << " Received part " << partition->dgmNum
+                                                                 << " DeltaT " << delta_t_ms);
+      d->kmall_dgmNum = 0;
+      d->kmall_numOfDgms = 0;
+      return {false, {}};
     }
-    // Resize and copy everything except the new header/partition
-    // Overwrite the ending values for the length
-    d->kmall_partitioned.data.resize(current_length + max_length - count - 4);
-    memcpy(ptr + count, d->kmall_partitioned.data.data() + current_length - 4, max_length - count);
-    ROS_INFO_STREAM("Found partition piece "<<partition->dgmNum<< " of "<<partition->numOfDgms << " with size "<<max_length);
   }
   // If the datagram has completed transmission, then return the partitioned data message.
   if (partition->dgmNum == partition->numOfDgms){
@@ -467,6 +510,8 @@ KongsbergEM2040::check_and_append_mpartition(ds_core_msgs::RawData raw_p)
     auto ending_size_ptr = reinterpret_cast<uint32_t*>(d->kmall_partitioned.data.data() + d->kmall_partitioned.data.size() - 4);
     *ending_size_ptr = data_size;
     ROS_INFO_STREAM("Partition complete! Total size "<< data_size<<" bytes");
+    d->kmall_dgmNum = 0;
+    d->kmall_numOfDgms = 0;
     return {true, d->kmall_partitioned};
   }
   // Otherwise, assume transmission has not completed and we are waiting for more data.
@@ -831,10 +876,10 @@ KongsbergEM2040::_load_xml_cmd(ds_kongsberg_msgs::LoadXmlCmd::Request &req, ds_k
 void
 KongsbergEM2040::_on_kmall_data(ds_core_msgs::RawData raw)
 {
+  d->pck_cnt += 1;
   if (!parse_data(raw)){
     ROS_ERROR_STREAM("KMAll data parse failed OR incomplete packet");
   } else {
-    std::unique_lock<std::mutex> lck(d->m_status_mutex);
     d->kmall_timer.stop();
     d->kmall_timer.start();
     d->m_status.kmall_connected = true;
@@ -847,7 +892,6 @@ KongsbergEM2040::_on_kctrl_data(ds_core_msgs::RawData raw)
   if (!parse_message(raw)){
     ROS_ERROR_STREAM("KCtrl message parse failed");
   } else {
-    std::unique_lock<std::mutex> lck(d->m_status_mutex);
     d->kctrl_timer.stop();
     d->kctrl_timer.start();
     d->m_status.kctrl_connected = true;
@@ -1094,8 +1138,6 @@ KongsbergEM2040::_read_kctrl_xml(std::string filename)
 void
 KongsbergEM2040::_on_kctrl_timeout(const ros::TimerEvent&)
 {
-
-  std::unique_lock<std::mutex> lck(d->m_status_mutex);
   if (d->m_status.kctrl_connected){
     ROS_ERROR_STREAM("Kctrl timed out... assume totally disconnected");
   }
@@ -1110,7 +1152,7 @@ void
 KongsbergEM2040::_on_pu_powered_timeout(const ros::TimerEvent&)
 {
 
-  std::unique_lock<std::mutex> lck(d->m_status_mutex);
+
   if (d->m_status.pu_powered){
     ROS_ERROR_STREAM("PU power timed out... assume powered off");
   }
@@ -1124,7 +1166,7 @@ void
 KongsbergEM2040::_on_pu_connected_timeout(const ros::TimerEvent&)
 {
 
-  std::unique_lock<std::mutex> lck(d->m_status_mutex);
+
   if (d->m_status.pu_connected){
     ROS_ERROR_STREAM("PU connection timed out... assume disconnected");
   }
@@ -1137,9 +1179,11 @@ void
 KongsbergEM2040::_on_kmall_timeout(const ros::TimerEvent&)
 {
 
-  std::unique_lock<std::mutex> lck(d->m_status_mutex);
+
   if (d->m_status.kmall_connected){
     ROS_ERROR_STREAM("Kmall stream timed out... assume totally disconnected");
+    ROS_INFO_STREAM("Received " << d->pck_cnt << " KMALL packets");
+    d->pck_cnt = 0;
   }
   d->m_status.kmall_connected = false;
   d->m_status.pinging = false;
@@ -1150,7 +1194,7 @@ void
 KongsbergEM2040::_on_pinging_timeout(const ros::TimerEvent&)
 {
 
-  std::unique_lock<std::mutex> lck(d->m_status_mutex);
+
   if(d->m_status.commanded_pinging && d->m_status.kmall_connected){
     ROS_ERROR_STREAM("Ping timed out... attempt to restart pinging");
     _send_kctrl_command(SIS_TO_K::LOG_IOP_SVP);

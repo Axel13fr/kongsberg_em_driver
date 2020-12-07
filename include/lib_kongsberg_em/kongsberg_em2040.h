@@ -70,7 +70,18 @@ class KongsbergEM2040  : boost::noncopyable
   bool read_kmall_dgm_from_kctrl(int type, const ds_core_msgs::RawData &raw);
   bool parse_ipu(std::vector<std::string> fields);
 
-  std::pair<bool, ds_core_msgs::RawData> check_and_append_mpartition(ds_core_msgs::RawData);
+  /**
+   * @brief check_and_append_mpartition
+   * @return Returns a bool and a RawData msg.
+   * If the datagram is not partitioned, then it returns the datagram.
+   * If the datagram is partitioned, then
+   *  True means that the datagram is complete (SHOULD BE LOGGED AND PARSED)
+   *  False means that the datagram is incomplete (NO LOGGING)
+   *
+   * This function expects partitions to arrive sequentially for one given message, which is the
+   * case when receiving data from the real hardware.
+   */
+  std::pair<bool, ds_core_msgs::RawData> check_and_append_mpartition(ds_core_msgs::RawData &);
   bool read_bist_result(ds_core_msgs::RawData& raw);
   uint8_t read_good_bad_missing(std::string);
 
@@ -87,7 +98,7 @@ class KongsbergEM2040  : boost::noncopyable
   void _on_kmall_data(ds_core_msgs::RawData raw);
   void _on_kctrl_data(ds_core_msgs::RawData raw);
 
- private:
+private:
 
   bool _ping_cmd(ds_kongsberg_msgs::PingCmd::Request &req, ds_kongsberg_msgs::PingCmd::Response &res);
   bool _power_cmd(ds_kongsberg_msgs::PowerCmd::Request &req, ds_kongsberg_msgs::PowerCmd::Response &res);
@@ -116,6 +127,8 @@ class KongsbergEM2040  : boost::noncopyable
   void _on_pu_powered_timeout(const ros::TimerEvent&);
   void _on_pu_connected_timeout(const ros::TimerEvent&);
   void _on_pinging_timeout(const ros::TimerEvent&);
+
+  static double _timeToLastPartition(const EMdgmHeader *hdr);
 
   // All object members are hidden inside a pointer to preserve binary compatiblity
   // See https://wiki.qt.io/D-Pointer for explanation
