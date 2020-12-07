@@ -46,6 +46,7 @@
 #include "ds_kongsberg_msgs/BistCmd.h"
 #include "ds_kongsberg_msgs/LoadXmlCmd.h"
 #include "ds_kongsberg_msgs/KongsbergStatus.h"
+#include "ds_kongsberg_msgs/KongsbergKMAllRecord.h"
 
 #include <ds_multibeam_msgs/MultibeamRaw.h>
 #include <boost/utility.hpp>
@@ -69,13 +70,20 @@ class KongsbergEM2040  : boost::noncopyable
   bool read_kmall_dgm_from_kctrl(int type, const ds_core_msgs::RawData &raw);
   bool parse_ipu(std::vector<std::string> fields);
 
-  std::pair<bool, ds_core_msgs::RawData> check_and_append_mpartition(ds_core_msgs::RawData);
-  static std::pair<bool, EMdgmMRZ> read_mrz(uint8_t* bytes, int max_length);
+  /**
+   * @brief check_and_append_mpartition
+   * @return Returns a bool and a RawData msg.
+   * If the datagram is not partitioned, then it returns the datagram.
+   * If the datagram is partitioned, then
+   *  True means that the datagram is complete (SHOULD BE LOGGED AND PARSED)
+   *  False means that the datagram is incomplete (NO LOGGING)
+   *
+   * This function expects partitions to arrive sequentially for one given message, which is the
+   * case when receiving data from the real hardware.
+   */
+  std::pair<bool, ds_core_msgs::RawData> check_and_append_mpartition(ds_core_msgs::RawData &);
   bool read_bist_result(ds_core_msgs::RawData& raw);
   uint8_t read_good_bad_missing(std::string);
-
-  static ds_multibeam_msgs::MultibeamRaw mrz_to_mb_raw(EMdgmMRZ* msg);
-  static sensor_msgs::PointCloud2 mrz_to_pointcloud(EMdgmMRZ* msg, const std::string &frame_id);
 
   void mbraw_to_kmstatus(ds_multibeam_msgs::MultibeamRaw raw);
 
@@ -90,7 +98,7 @@ class KongsbergEM2040  : boost::noncopyable
   void _on_kmall_data(ds_core_msgs::RawData raw);
   void _on_kctrl_data(ds_core_msgs::RawData raw);
 
- private:
+private:
 
   bool _ping_cmd(ds_kongsberg_msgs::PingCmd::Request &req, ds_kongsberg_msgs::PingCmd::Response &res);
   bool _power_cmd(ds_kongsberg_msgs::PowerCmd::Request &req, ds_kongsberg_msgs::PowerCmd::Response &res);
@@ -103,6 +111,10 @@ class KongsbergEM2040  : boost::noncopyable
   std::string _send_kctrl_param(std::string param, T1 param_val);
   template <class T1>
   std::string _send_kctrl_param(std::vector<std::string> params, std::vector<T1> vals);
+  template <class EMdgmMRZ_S>
+  void _read_and_publish_mrz(const ds_kongsberg_msgs::KongsbergKMAllRecord &r,
+                             std::vector<uint8_t> &data);
+
   void _startup_sequence();
   void _print_bist(std::string name, std::string status, std::string msg);
   void _run_next_bist();
@@ -115,6 +127,8 @@ class KongsbergEM2040  : boost::noncopyable
   void _on_pu_powered_timeout(const ros::TimerEvent&);
   void _on_pu_connected_timeout(const ros::TimerEvent&);
   void _on_pinging_timeout(const ros::TimerEvent&);
+
+  static double _timeToLastPartition(const EMdgmHeader *hdr);
 
   // All object members are hidden inside a pointer to preserve binary compatiblity
   // See https://wiki.qt.io/D-Pointer for explanation

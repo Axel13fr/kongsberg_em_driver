@@ -1,4 +1,4 @@
-//
+  //
 // Created by jvaccaro on 7/17/19.
 //
 
@@ -13,6 +13,10 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <sensor_msgs/PointCloud2.h>
+#include <pcl_ros/point_cloud.h>
+#include <ds_multibeam_msgs/MultibeamRaw.h>
+#include <ds_kongsberg_msgs/KongsbergMRZ.h>
 
 namespace kongsberg_em {
 
@@ -100,5 +104,75 @@ file_split_out_xml_params(std::string filename, std::string token_param="ID", st
   }
   return {params, values};
 }
+
+template <typename EMdgmMRZ_S>
+static ds_kongsberg_msgs::KongsbergMRZ mrz_to_msg(const EMdgmMRZ_S& msg)
+{
+  ds_kongsberg_msgs::KongsbergMRZ m;
+  ros::Time t;
+  m.header.stamp = t.fromSec(msg.header.time_sec + msg.header.time_nanosec / 1.0e9);
+  m.latitude_deg = msg.pingInfo.latitude_deg;
+  m.longitude_deg  = msg.pingInfo.longitude_deg;
+  m.ellipsoidHeightReRefPoint_m  = msg.pingInfo.ellipsoidHeightReRefPoint_m;
+  m.headingVessel_deg  = msg.pingInfo.headingVessel_deg;
+  m.z_waterLevelReRefPoint_m  = msg.pingInfo.z_waterLevelReRefPoint_m;
+  return m;
+}
+
+template <typename EMdgmMRZ_S>
+static ds_multibeam_msgs::MultibeamRaw mrz_to_mb_raw(EMdgmMRZ_S* msg){
+  ds_multibeam_msgs::MultibeamRaw mb{};
+  ros::Time t;
+  mb.header.stamp = t.fromSec(msg->header.time_sec + msg->header.time_nanosec / 1.0e9);
+
+  int num_soundings = msg->rxInfo.numSoundingsMaxMain + msg->rxInfo.numExtraDetections;
+  mb.beamflag.resize(num_soundings);
+  mb.twowayTravelTime.resize(num_soundings);
+  mb.txDelay.resize(num_soundings);
+  mb.intensity.resize(num_soundings);
+  mb.angleAlongTrack.resize(num_soundings);
+  mb.angleAcrossTrack.resize(num_soundings);
+  mb.beamwidthAlongTrack.resize(num_soundings);
+  mb.beamwidthAcrossTrack.resize(num_soundings);
+  for (int i = 0; i < num_soundings; i++) {
+    mb.beamflag[i] = (msg->sounding[i].detectionType == 2 ? mb.BEAM_BAD_SONAR : mb.BEAM_OK);
+    mb.twowayTravelTime[i] = msg->sounding[i].twoWayTravelTime_sec;
+    mb.txDelay[i] = msg->sounding[i].twoWayTravelTimeCorrection_sec;
+    mb.intensity[i] = msg->sounding[i].reflectivity1_dB;
+    int sector = msg->sounding[i].txSectorNumb;
+    if (sector < msg->pingInfo.numTxSectors){
+      mb.angleAlongTrack[i] = deg_to_rad(msg->sectorInfo[sector].tiltAngleReTx_deg); // use sector index to get tilt angle, then convert to rad
+    }
+    mb.angleAcrossTrack[i] = deg_to_rad(msg->sounding[i].beamAngleReRx_deg); // convert deg to rad
+    mb.beamwidthAlongTrack[i] = 0;
+    mb.beamwidthAcrossTrack[i] = deg_to_rad(msg->sounding[i].WCNomBeamAngleAcross_deg);
+  }
+
+  mb.soundspeed = msg->pingInfo.soundSpeedAtTxDepth_mPerSec;
+  return mb;
+}
+
+template <typename EMdgmMRZ_S>
+static sensor_msgs::PointCloud2 mrz_to_pointcloud(const EMdgmMRZ_S& msg,
+                                                  const std::string &frame_id){
+  pcl::PointCloud<pcl::PointXYZI> pcl;
+  int num_soundings = msg.rxInfo.numSoundingsMaxMain + msg.rxInfo.numExtraDetections;
+  pcl::PointXYZI pt;
+  for (int i = 0; i < num_soundings; i++)
+  {
+    pt.x = msg.sounding[i].x_reRefPoint_m;
+    pt.y = msg.sounding[i].y_reRefPoint_m;
+    pt.z = msg.sounding[i].z_reRefPoint_m;
+    pt.intensity = msg.sounding[i].sourceLevelApplied_dB;
+    pcl.push_back(pt);
+  }
+
+  sensor_msgs::PointCloud2 m;
+  pcl::toROSMsg(pcl, m);
+  m.header.stamp = ros::Time().fromSec(msg.header.time_sec + msg.header.time_nanosec / 1.0e9);
+  m.header.frame_id = frame_id;
+  return m;
+}
+
 
 } //namespace
