@@ -1,5 +1,5 @@
 kmall_connection:
-    udp_address: "127.0.0.1"
+    udp_address: "225.1.20.40"
     udp_tx_port: 6021
     udp_rx_port: 6020
 kctrl_connection:
@@ -11,6 +11,7 @@ sounder_name: EM2040_130
 run_startup: false
 ship_name: my_ship
 mrz_frame_id: sonar_vcs
+save_kmall_files: false
 bist_dir: /tmp/bist/
 kmall_dir: /tmp/kmall/
 xml_dir: /tmp/xml/

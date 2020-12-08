@@ -54,8 +54,8 @@ KongsbergEM2040::KongsbergEM2040(ros::NodeHandle &nh, SendKCtrlDataFunc send_kct
 }
 
 KongsbergEM2040::~KongsbergEM2040(){
-  if (d->kmall_stream) {
-    d->kmall_stream->close();
+  if (d->kmall_stream.is_open()) {
+    d->kmall_stream.close();
   }
 };
 
@@ -428,19 +428,19 @@ double kongsberg_em::KongsbergEM2040::_timeToLastPartition(const EMdgmHeader *hd
 }
 
 std::pair<bool, ds_core_msgs::RawData>
-KongsbergEM2040::check_and_append_mpartition(ds_core_msgs::RawData& raw_p)
+KongsbergEM2040::check_and_append_mpartition(const ds_core_msgs::RawData& raw_p)
 {
 
   auto ptr = raw_p.data.data();
   auto max_length = raw_p.data.size();
   int count = 0;
-  auto hdr = reinterpret_cast<EMdgmHeader *>(ptr + count);
+  auto hdr = reinterpret_cast<const EMdgmHeader *>(ptr + count);
   count += sizeof(EMdgmHeader);
   // ROS_ERROR_STREAM("PARTITIONED TIME: "<<hdr->time_sec);
 
   auto delta_t_ms = _timeToLastPartition(hdr);
 
-  auto partition = reinterpret_cast<EMdgmMpartition *>(ptr + count);
+  auto partition = reinterpret_cast<const EMdgmMpartition *>(ptr + count);
   count += sizeof(EMdgmMpartition);
   // If the datagram isn't partitioned, then return itself immediately!
   if (partition->dgmNum == 1 && partition->numOfDgms == 1)
@@ -455,11 +455,12 @@ KongsbergEM2040::check_and_append_mpartition(ds_core_msgs::RawData& raw_p)
   {
     d->kmall_dgmNum = partition->dgmNum;
     d->kmall_numOfDgms = partition->numOfDgms;
-    // Rewrite number of Dgms: the reconstructed complete datagram will only have one part
-    partition->dgmNum = 1;
-    partition->numOfDgms = 1;
     d->kmall_partitioned.data.resize(max_length);
     d->kmall_partitioned.data = raw_p.data;
+    // Rewrite number of Dgms: the reconstructed complete datagram will only have one part
+    auto new_part = reinterpret_cast<EMdgmMpartition *>(d->kmall_partitioned.data.data() + sizeof(EMdgmHeader));
+    new_part->dgmNum = 1;
+    new_part->numOfDgms = 1;
     d->kmall_dgmNum = 1;
     ROS_INFO_STREAM("Part " << d->kmall_dgmNum << "/" << d->kmall_numOfDgms << " with size " << max_length << " DeltaT "
                             << delta_t_ms);
@@ -488,7 +489,7 @@ KongsbergEM2040::check_and_append_mpartition(ds_core_msgs::RawData& raw_p)
       // Resize and copy everything except the new header/partition
       // Overwrite the ending values for the length
       d->kmall_partitioned.data.resize(current_length + max_length - count - 4);
-      memcpy(ptr + count, d->kmall_partitioned.data.data() + current_length - 4, max_length - count);
+      memcpy(d->kmall_partitioned.data.data() + current_length - 4,ptr + count, max_length - count);
       ROS_INFO_STREAM("Next Part " << partition->dgmNum<< "/"<< partition->numOfDgms << " with size "<<max_length
                                   <<  " DeltaT " << delta_t_ms);
       d->kmall_dgmNum = partition->dgmNum;
@@ -635,6 +636,7 @@ KongsbergEM2040::setupParameters()
   d->m_status.rt_trigger = "0";
   // other parameters
   d->mrz_frame_id_ = ros::param::param<std::string>("~mrz_frame_id", "sonar_vcs");
+  d->save_kmall_files = ros::param::param<bool>("~save_kmall_files", true);
   d->kmall_max_buffer_size = 1e3*ros::param::param<int>("~max_kmall_buffer_kB", 30);
   d->kmall_max_file_size = 1e6*ros::param::param<int>("~max_kmall_file_MB", 400);
   d->kmall_partitioned = ds_core_msgs::RawData{};
@@ -1011,18 +1013,20 @@ KongsbergEM2040::_run_next_bist()
 void
 KongsbergEM2040::_new_kmall_file()
 {
+  if (not d->save_kmall_files)
+  {
+    return;
+  }
 
   d->m_status.kmall_filecount ++;
   d->m_status.kmall_filename = filename(d->m_status.kmall_directory,
                                         d->m_status.kmall_filecount,
                                         d->m_status.ship_name,
                                         ".kmall");
-  if (d->kmall_stream == NULL){
-    d->kmall_stream = new std::ofstream();
-  } else {
-    d->kmall_stream->close();
+  if (d->kmall_stream.is_open()){
+    d->kmall_stream.close();
   }
-  d->kmall_stream->open (d->m_status.kmall_filename, std::ios::out | std::ios::binary);
+  d->kmall_stream.open (d->m_status.kmall_filename, std::ios::out | std::ios::binary);
   d->kmall_buffer_size = 0;
   d->kmall_file_size = 0;
   d->m_status.kmall_filesize_kB = 0;
@@ -1032,17 +1036,17 @@ void
 KongsbergEM2040::_write_kmall_data(const std::vector<uint8_t>& data)
 {
 
-  if (d->kmall_stream->is_open()){
+  if (d->kmall_stream.is_open()){
     auto size = data.size();
     auto bytes = reinterpret_cast<const char*>(data.data());
-    d->kmall_stream->write(bytes, size);
+    d->kmall_stream.write(bytes, size);
     d->kmall_buffer_size += size;
     d->kmall_file_size += size;
     d->m_status.kmall_filesize_kB += d->kmall_file_size / 1e3;
     if (d->kmall_file_size > d->kmall_max_file_size){
       _send_kctrl_command(SIS_TO_K::LOG_IOP_SVP);
     } else if (d->kmall_buffer_size > d->kmall_max_buffer_size){
-      d->kmall_stream->flush();
+      d->kmall_stream.flush();
       d->kmall_buffer_size = 0;
     }
   }

@@ -81,7 +81,7 @@ class KongsbergEM2040  : boost::noncopyable
    * This function expects partitions to arrive sequentially for one given message, which is the
    * case when receiving data from the real hardware.
    */
-  std::pair<bool, ds_core_msgs::RawData> check_and_append_mpartition(ds_core_msgs::RawData &);
+  std::pair<bool, ds_core_msgs::RawData> check_and_append_mpartition(const ds_core_msgs::RawData & );
   bool read_bist_result(ds_core_msgs::RawData& raw);
   uint8_t read_good_bad_missing(std::string);
 

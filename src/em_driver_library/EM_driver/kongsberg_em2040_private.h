@@ -40,6 +40,7 @@
 namespace kongsberg_em{
 struct KongsbergEM2040Private{
   ros::NodeHandle nh_;
+
   // Callback given to the ROS node to send data using the KController
   // UDP connection
   SendKCtrlDataFunc send_kctrl_data_;
@@ -52,10 +53,6 @@ struct KongsbergEM2040Private{
   ros::ServiceServer xml_srv_;
 
   ros::Publisher mbraw_pub_;
-//  ros::Publisher mbfilter_pub_;
-//  ros::Publisher mbgrid_pub_;
-//  ros::Publisher mbgridstats_pub_;
-//  ros::Publisher watercolumn_pub_;
   ros::Publisher pointcloud_pub_;
   ros::Publisher offset_pub_;
   ros::Publisher mrz_pub_;
@@ -69,30 +66,14 @@ struct KongsbergEM2040Private{
   std::string mrz_frame_id_;
 
   // KCtrl startup info
-//  std::string sounder_name_;
-//  bool started_;
   ds_kongsberg_msgs::KongsbergStatus m_status;
-  // Take out the things from mutex control that ought to be static.
-  // Only use the mutex to change things
-//  std::string m_sounder_name;
-//  std::string m_xml_directory;
-//  std::string m_bist_directory;
-//  std::string m_kmall_directory;
 
-//  filename datetime facet;
-//  std::string time_facet_str;
-
-  // Data logging
-//  std::string shipname;
   ros::Timer kctrl_timer;
   ros::Timer kmall_timer;
   ros::Timer pu_powered_timer;
   ros::Timer pu_connected_timer;
   ros::Timer pinging_timer;
-//  std::string kmall_filename;
-//  std::string kmall_filename_base;
-  std::ofstream* kmall_stream = NULL;
-
+  std::ofstream kmall_stream;
   uint16_t pck_cnt = 0;
 
   // Diagnostics
@@ -103,24 +84,15 @@ struct KongsbergEM2040Private{
   uint16_t kmall_dgmNum = 0;
   uint16_t kmall_numOfDgms = 0;
 
-//  int kmall_file_count = 0;
-//  float kmall_max_size_gb;
-//  float kmall_current_size_gb;
-  // all in bytes
-//  long int  kmall_file_size;
+  // Data logging
+  bool save_kmall_files;
+
   // All size values in bytes
   long int kmall_buffer_size, kmall_max_buffer_size, kmall_file_size, kmall_max_file_size;
 
   //BIST
-//  bool bist_running = false;
-//  int bist_progress = 0;
   std::vector<std::string> bist_tests;
-//  std::string bist_filename;
-//  std::string bist_filename_base;
   std::stringstream bist_summary_stream;
-
-//  XML params
-//  int xml_count = 0;
 
 };
 }
