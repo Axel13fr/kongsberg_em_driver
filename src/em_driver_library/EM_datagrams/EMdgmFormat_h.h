@@ -24,64 +24,64 @@ namespace EMdgm_h
   08  20 MAR 2020  Rev H.
  */
 
-#define EM_DGM_FORMAT_VERSION "Rev H 2020-03-20"
-#define MAX_NUM_BEAMS 1024
-#define MAX_EXTRA_DET 1024
-#define MAX_EXTRA_DET_CLASSES 11
-#define MAX_SIDESCAN_SAMP 60000
-#define MAX_SIDESCAN_EXTRA_SAMP 15000
-#define MAX_NUM_TX_PULSES 9
-#define MAX_ATT_SAMPLES 148
-#define MAX_SVP_POINTS 2000
-#define MAX_SVT_SAMPLES 1
-#define MAX_DGM_SIZE 64000
-#define MAX_NUM_MST_DGMS 256
-#define MAX_NUM_MWC_DGMS 256
-#define MAX_NUM_MRZ_DGMS 32
-#define MAX_NUM_FCF_DGMS 1
-#define MAX_SPO_DATALENGTH 250
-#define MAX_ATT_DATALENGTH 250
-#define MAX_SVT_DATALENGTH 64
-#define MAX_SCL_DATALENGTH 64
-#define MAX_SDE_DATALENGTH 32
-#define MAX_SHI_DATALENGTH 32
-#define MAX_CPO_DATALENGTH 250
-#define MAX_CHE_DATALENGTH 64
-#define MAX_F_FILENAME_LENGTH 64
-#define MAX_F_FILE_SIZE 63000
-#define UNAVAILABLE_POSFIX 0xffff
-#define UNAVAILABLE_LATITUDE 200.0f
-#define UNAVAILABLE_LONGITUDE 200.0f
-#define UNAVAILABLE_SPEED -1.0f
-#define UNAVAILABLE_COURSE -4.0f
-#define UNAVAILABLE_ELLIPSOIDHEIGHT -999.0f
+static constexpr auto EM_DGM_FORMAT_VERSION=  "Rev H 2020-03-20";
+static constexpr auto MAX_NUM_BEAMS=  1024;
+static constexpr auto MAX_EXTRA_DET=  1024;
+static constexpr auto MAX_EXTRA_DET_CLASSES=  11;
+static constexpr auto MAX_SIDESCAN_SAMP=  60000;
+static constexpr auto MAX_SIDESCAN_EXTRA_SAMP=  15000;
+static constexpr auto MAX_NUM_TX_PULSES=  9;
+static constexpr auto MAX_ATT_SAMPLES=  148;
+static constexpr auto MAX_SVP_POINTS=  2000;
+static constexpr auto MAX_SVT_SAMPLES=  1;
+static constexpr auto MAX_DGM_SIZE=  64000;
+static constexpr auto MAX_NUM_MST_DGMS=  256;
+static constexpr auto MAX_NUM_MWC_DGMS=  256;
+static constexpr auto MAX_NUM_MRZ_DGMS=  32;
+static constexpr auto MAX_NUM_FCF_DGMS=  1;
+static constexpr auto MAX_SPO_DATALENGTH=  250;
+static constexpr auto MAX_ATT_DATALENGTH=  250;
+static constexpr auto MAX_SVT_DATALENGTH=  64;
+static constexpr auto MAX_SCL_DATALENGTH=  64;
+static constexpr auto MAX_SDE_DATALENGTH=  32;
+static constexpr auto MAX_SHI_DATALENGTH=  32;
+static constexpr auto MAX_CPO_DATALENGTH=  250;
+static constexpr auto MAX_CHE_DATALENGTH=  64;
+static constexpr auto MAX_F_FILENAME_LENGTH=  64;
+static constexpr auto MAX_F_FILE_SIZE=  63000;
+static constexpr auto UNAVAILABLE_POSFIX=  0xffff;
+static constexpr auto UNAVAILABLE_LATITUDE=  200.0f;
+static constexpr auto UNAVAILABLE_LONGITUDE=  200.0f;
+static constexpr auto UNAVAILABLE_SPEED=  -1.0f;
+static constexpr auto UNAVAILABLE_COURSE=  -4.0f;
+static constexpr auto UNAVAILABLE_ELLIPSOIDHEIGHT=  -999.0f;
 /*********************************************
             Datagram names
  *********************************************/
 
 /* I-datagrams */
-#define EM_DGM_I_INSTALLATION_PARAM "#IIP"
-#define EM_DGM_I_OP_RUNTIME "#IOP"
+static constexpr auto  EM_DGM_I_INSTALLATION_PARAM = "#IIP";
+static constexpr auto  EM_DGM_I_OP_RUNTIME = "#IOP";
 
 /* S-datagrams */
-#define EM_DGM_S_POSITION "#SPO"
-#define EM_DGM_S_KM_BINARY "#SKM"
-#define EM_DGM_S_SOUND_VELOCITY_PROFILE "#SVP"
-#define EM_DGM_S_SOUND_VELOCITY_TRANSDUCER "#SVT"
-#define EM_DGM_S_CLOCK "#SCL"
-#define EM_DGM_S_DEPTH "#SDE"
-#define EM_DGM_S_HEIGHT "#SHI"
+static constexpr auto  EM_DGM_S_POSITION = "#SPO";
+static constexpr auto  EM_DGM_S_KM_BINARY = "#SKM";
+static constexpr auto  EM_DGM_S_SOUND_VELOCITY_PROFILE = "#SVP";
+static constexpr auto  EM_DGM_S_SOUND_VELOCITY_TRANSDUCER= "#SVT";
+static constexpr auto  EM_DGM_S_CLOCK="#SCL";
+static constexpr auto  EM_DGM_S_DEPTH= "#SDE";
+static constexpr auto  EM_DGM_S_HEIGHT= "#SHI";
 
 /* M-datagrams */
-#define EM_DGM_M_RANGE_AND_DEPTH "#MRZ"
-#define EM_DGM_M_WATER_COLUMN "#MWC"
+static constexpr auto  EM_DGM_M_RANGE_AND_DEPTH="#MRZ";
+static constexpr auto  EM_DGM_M_WATER_COLUMN="#MWC";
 
 /* C-datagrams */
-#define EM_DGM_C_POSITION "#CPO"
-#define EM_DGM_C_HEAVE "#CHE"
+static constexpr auto  EM_DGM_C_POSITION="#CPO";
+static constexpr auto  EM_DGM_C_HEAVE="#CHE";
 
 /* F-datagrams */
-#define EM_DGM_F_CALIBRATION_FILE "#FCF"
+static constexpr auto  EM_DGM_F_CALIBRATION_FILE="#FCF";
 
 /*********************************************
 
@@ -154,7 +154,7 @@ struct EMdgmSPO_def
   struct EMdgmSPOdataBlock_def sensorData;
 };
 
-#define SPO_VERSION 0
+static constexpr auto SPO_VERSION = 0;
 typedef struct EMdgmSPO_def EMdgmSPO, *pEMdgmSPO;
 
 
@@ -231,7 +231,7 @@ struct EMdgmSKM_def
   struct EMdgmSKMsample_def sample[MAX_ATT_SAMPLES];
 };
 
-#define SKM_VERSION 1
+static constexpr auto SKM_VERSION = 1;
 typedef struct EMdgmSKM_def EMdgmSKM, *pEMdgmSKM;
 
 
@@ -260,8 +260,7 @@ struct EMdgmSVP_def
   double longitude_deg;
   struct EMdgmSVPpoint_def sensorData[MAX_SVP_POINTS];
 };
-
-#define SVP_VERSION 1
+static constexpr auto SVP_VERSION = 1;
 typedef struct EMdgmSVP_def EMdgmSVP, *pEMdgmSVP;
 
 /************************************
@@ -298,7 +297,7 @@ struct EMdgmSVT_def
   struct EMdgmSVTsample_def sensorData[MAX_SVT_SAMPLES];
 };
 
-#define SVT_VERSION 0
+static constexpr auto SVT_VERSION = 0;
 typedef struct EMdgmSVT_def EMdgmSVT, *pEMdgmSVT;
 
 /************************************
@@ -320,7 +319,7 @@ struct EMdgmSCL_def
   struct EMdgmSCLdataFromSensor_def sensData;
 };
 
-#define SCL_VERSION 0
+static constexpr auto SCL_VERSION = 0;
 typedef struct EMdgmSCL_def EMdgmSCL, *pEMdgmSCL;
 
 
@@ -346,7 +345,7 @@ struct EMdgmSDE_def
   struct EMdgmSDEdataFromSensor_def sensorData;
 };
 
-#define SDE_VERSION 0
+static constexpr auto SDE_VERSION = 0;
 typedef struct EMdgmSDE_def EMdgmSDE, *pEMdgmSDE;
 
 /************************************
@@ -368,7 +367,7 @@ struct EMdgmSHI_def
   struct EMdgmSHIdataFromSensor_def sensData;
 };
 
-#define SHI_VERSION 0
+static constexpr auto SHI_VERSION = 0;
 typedef struct EMdgmSHI_def EMdgmSHI, *pEMdgmSHI;
 
 
@@ -585,8 +584,7 @@ struct EMdgmMRZ_def
   int16_t SIsample_desidB[MAX_SIDESCAN_SAMP];
 };
 
-#define MRZ_VERSION 2
-static constexpr auto MRZ_VERSION_H = 2;
+static constexpr auto MRZ_VERSION = 2;
 typedef struct EMdgmMRZ_def EMdgmMRZ, *pEMdgmMRZ;
 
 /************************************
@@ -666,8 +664,7 @@ struct EMdgmMWC_def
   struct EMdgmMWCrxBeamData_def *beamData_p;
 };
 
-#define MWC_VERSION 1
-static constexpr auto MWC_VERSION_H = 1;
+static constexpr auto MWC_VERSION = 1;
 typedef struct EMdgmMWC_def EMdgmMWC, *pEMdgmMWC;
 
 
@@ -702,7 +699,7 @@ struct EMdgmCPO_def
   struct EMdgmCPOdataBlock_def sensorData;
 };
 
-#define CPO_VERSION 0
+static constexpr auto CPO_VERSION = 0;
 typedef struct EMdgmCPO_def EMdgmCPO, *pEMdgmCPO;
 
 
@@ -723,7 +720,7 @@ struct EMdgmCHE_def
   struct EMdgmCHEdata_def data;
 };
 
-#define CHE_VERSION 0
+static constexpr auto CHE_VERSION = 0;
 typedef struct EMdgmCHE_def EMdgmCHE, *pEMdgmCHE;
 
 
@@ -756,7 +753,7 @@ struct EMdgmFCF_def
 };
 
 typedef struct EMdgmFCF_def EMdgmFCF, *pEMdgmFCF;
-#define FCF_VERSION 0
+static constexpr auto FCF_VERSION = 0;
 
 
 /*********************************************
@@ -777,7 +774,7 @@ struct EMdgmIIP_def
   uint8_t install_txt;
 };
 
-#define IIP_VERSION 0
+static constexpr auto IIP_VERSION = 0;
 typedef struct EMdgmIIP_def dgm_IIP, *pdgm_IIP;
 
 
@@ -793,7 +790,7 @@ struct EMdgmIOP_def
   uint8_t runtime_txt;
 };
 
-#define IOP_VERSION 0
+static constexpr auto IOP_VERSION = 0;
 typedef struct EMdgmIOP_def dgm_IOP, *pdgm_IOP;
 
 
@@ -811,7 +808,7 @@ struct EMdgmIB_def
   uint8_t BISTText;
 };
 
-#define BIST_VERSION 0
+static constexpr auto BIST_VERSION = 0;
 typedef struct EMdgmIB_def dgm_IB, *pdgm_IB;
 
 }; //namespace

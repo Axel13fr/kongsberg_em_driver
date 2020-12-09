@@ -51,6 +51,7 @@ KongsbergEM2040::KongsbergEM2040(ros::NodeHandle &nh, SendKCtrlDataFunc send_kct
 {
   d->nh_ = nh;
   d->send_kctrl_data_ = send_kctrl_data;
+
 }
 
 KongsbergEM2040::~KongsbergEM2040(){
@@ -211,10 +212,10 @@ KongsbergEM2040::read_good_bad_missing(std::string msg)
 bool
 KongsbergEM2040::read_bist_result(ds_core_msgs::RawData& raw)
 {
-  dgm_IB r{};
+  EMdgm_f::dgm_IB r{};
   uint8_t* ptr = raw.data.data();
 
-  r = *reinterpret_cast<dgm_IB*>(ptr);
+  r = *reinterpret_cast<EMdgm_f::dgm_IB*>(ptr);
   int index = sizeof(r) - 2;
   auto max_index = raw.data.size();
   if (max_index < index){
@@ -279,14 +280,14 @@ bool
 KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
 {
   auto data_size = raw.data.size();
-  auto min_size = sizeof(EMdgmHeader);
+  auto min_size = sizeof(EMdgm_f::EMdgmHeader);
   if (data_size < min_size){
     ROS_ERROR_STREAM("Raw Data received less than minimum size "<<min_size<<" bytes");
     return false;
   }
 
   const uint8_t* bytes_ptr = raw.data.data();
-  auto hdr = reinterpret_cast<const EMdgmHeader*>(bytes_ptr);
+  auto hdr = reinterpret_cast<const EMdgm_f::EMdgmHeader*>(bytes_ptr);
   //ROS_ERROR_STREAM("TIME: "<<hdr->time_sec);
   std::string msg_type(hdr->dgmType, hdr->dgmType + sizeof(hdr->dgmType)/sizeof(hdr->dgmType[0]));
   const uint8_t dgmVersion = hdr->dgmVersion;
@@ -303,32 +304,32 @@ KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
     return false;
   }
 
-  if (msg_type==EM_DGM_I_INSTALLATION_PARAM) {
+  if (msg_type==EMdgm_f::EM_DGM_I_INSTALLATION_PARAM) {
     r.record_name = "EM_DGM_I_INSTALLATION_PARAM";
     _new_kmall_file();
     _write_kmall_data(raw.data);
   }
-  else if (msg_type==EM_DGM_I_OP_RUNTIME) {
+  else if (msg_type==EMdgm_f::EM_DGM_I_OP_RUNTIME) {
     r.record_name = "EM_DGM_I_OP_RUNTIME";
     _write_kmall_data(raw.data);
   }
-  else if (msg_type==EM_DGM_S_POSITION){
+  else if (msg_type==EMdgm_f::EM_DGM_S_POSITION){
     r.record_name = "EM_DGM_S_POSITION";
     _write_kmall_data(raw.data);
   }
-  else if (msg_type==EM_DGM_S_KM_BINARY){
+  else if (msg_type==EMdgm_f::EM_DGM_S_KM_BINARY){
     r.record_name = "EM_DGM_S_KM_BINARY";
     _write_kmall_data(raw.data);
   }
-  else if (msg_type==EM_DGM_S_SOUND_VELOCITY_PROFILE){
+  else if (msg_type==EMdgm_f::EM_DGM_S_SOUND_VELOCITY_PROFILE){
     r.record_name = "EM_DGM_S_SOUND_VELOCITY_PROFILE";
     _write_kmall_data(raw.data);
   }
-  else if (msg_type==EM_DGM_S_SOUND_VELOCITY_TRANSDUCER){
+  else if (msg_type==EMdgm_f::EM_DGM_S_SOUND_VELOCITY_TRANSDUCER){
     r.record_name = "EM_DGM_S_SOUND_VELOCITY_TRANSDUCER";
     _write_kmall_data(raw.data);
   }
-  else if (msg_type==EM_DGM_S_CLOCK){
+  else if (msg_type==EMdgm_f::EM_DGM_S_CLOCK){
     r.record_name = "EM_DGM_S_CLOCK";
     ds_core_msgs::ClockOffset offset;
     offset.header = r.header;
@@ -337,16 +338,16 @@ KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
     d->offset_pub_.publish(offset);
     _write_kmall_data(raw.data);
   }
-  else if (msg_type==EM_DGM_S_DEPTH){
+  else if (msg_type==EMdgm_f::EM_DGM_S_DEPTH){
     r.record_name = "EM_DGM_S_DEPTH";
     _write_kmall_data(raw.data);
   }
-  else if (msg_type==EM_DGM_S_HEIGHT){
+  else if (msg_type==EMdgm_f::EM_DGM_S_HEIGHT){
 
     r.record_name = "EM_DGM_S_HEIGHT";
     _write_kmall_data(raw.data);
   }
-  else if (msg_type==EM_DGM_M_RANGE_AND_DEPTH){
+  else if (msg_type==EMdgm_f::EM_DGM_M_RANGE_AND_DEPTH){
     d->pinging_timer.stop();
     d->pinging_timer.start();
     d->m_status.pinging = true;
@@ -360,11 +361,11 @@ KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
       // Assume that the EMdgmMpartition_def structure will not change so
       // it's safe to collect and write all partitions of this structure even without a
       // compatible version: inform but not try to deserialize until version check
-      if (dgmVersion == MRZ_VERSION_F)
+      if (dgmVersion == EMdgm_f::MRZ_VERSION)
       {
-        _read_and_publish_mrz<EMdgmMRZ>(r,logme.data);
+        _read_and_publish_mrz<EMdgm_f::EMdgmMRZ>(r,logme.data);
       }
-      else if (dgmVersion == EMdgm_h::MRZ_VERSION_H)
+      else if (dgmVersion == EMdgm_h::MRZ_VERSION)
       {
         _read_and_publish_mrz<EMdgm_h::EMdgmMRZ>(r,logme.data);
       }else{
@@ -376,7 +377,7 @@ KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
       r.record_name = "EM_DGM_M_RANGE_AND_DEPTH P";
     }
   }
-  else if (msg_type==EM_DGM_M_WATER_COLUMN){
+  else if (msg_type==EMdgm_f::EM_DGM_M_WATER_COLUMN){
     r.record_name = "EM_DGM_M_WATER_COLUMN";
     bool full_data = false;
     ds_core_msgs::RawData logme{};
@@ -386,9 +387,9 @@ KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
       // Assume that the EMdgmMpartition_def structure will not change so
       // it's safe to collect and write all partitions of this structure even without a
       // compatible structure definition: inform but not try to deserialize until version check
-      if(dgmVersion == MWC_VERSION_F){
+      if(dgmVersion == EMdgm_f::MWC_VERSION){
         //TODO: decode water column ?
-      }else if(dgmVersion == EMdgm_h::MWC_VERSION_H){
+      }else if(dgmVersion == EMdgm_h::MWC_VERSION){
         //TODO: decode water column ?
       }else{
         ROS_ERROR_STREAM("Received MWC unsupported message version "
@@ -397,11 +398,11 @@ KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
       }
     }
   }
-  else if (msg_type==EM_DGM_C_POSITION){
+  else if (msg_type==EMdgm_f::EM_DGM_C_POSITION){
     r.record_name = "EM_DGM_C_POSITION";
     _write_kmall_data(raw.data);
   }
-  else if (msg_type==EM_DGM_C_HEAVE){
+  else if (msg_type==EMdgm_f::EM_DGM_C_HEAVE){
     r.record_name = "EM_DGM_C_HEAVE";
     _write_kmall_data(raw.data);
   }
@@ -414,7 +415,7 @@ KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
   return true;
 }
 
-double kongsberg_em::KongsbergEM2040::_timeToLastPartition(const EMdgmHeader *hdr)
+double kongsberg_em::KongsbergEM2040::_timeToLastPartition(const EMdgm_f::EMdgmHeader *hdr)
 {
   // Init previous time to now for the first time only (static variable!)
   static ros::Time prev_t = ros::Time::now();
@@ -434,14 +435,14 @@ KongsbergEM2040::check_and_append_mpartition(const ds_core_msgs::RawData& raw_p)
   auto ptr = raw_p.data.data();
   auto max_length = raw_p.data.size();
   int count = 0;
-  auto hdr = reinterpret_cast<const EMdgmHeader *>(ptr + count);
-  count += sizeof(EMdgmHeader);
+  auto hdr = reinterpret_cast<const EMdgm_f::EMdgmHeader *>(ptr + count);
+  count += sizeof(EMdgm_f::EMdgmHeader);
   // ROS_ERROR_STREAM("PARTITIONED TIME: "<<hdr->time_sec);
 
   auto delta_t_ms = _timeToLastPartition(hdr);
 
-  auto partition = reinterpret_cast<const EMdgmMpartition *>(ptr + count);
-  count += sizeof(EMdgmMpartition);
+  auto partition = reinterpret_cast<const EMdgm_f::EMdgmMpartition *>(ptr + count);
+  count += sizeof(EMdgm_f::EMdgmMpartition);
   // If the datagram isn't partitioned, then return itself immediately!
   if (partition->dgmNum == 1 && partition->numOfDgms == 1)
   {
@@ -458,7 +459,7 @@ KongsbergEM2040::check_and_append_mpartition(const ds_core_msgs::RawData& raw_p)
     d->kmall_partitioned.data.resize(max_length);
     d->kmall_partitioned.data = raw_p.data;
     // Rewrite number of Dgms: the reconstructed complete datagram will only have one part
-    auto new_part = reinterpret_cast<EMdgmMpartition *>(d->kmall_partitioned.data.data() + sizeof(EMdgmHeader));
+    auto new_part = reinterpret_cast<EMdgm_f::EMdgmMpartition *>(d->kmall_partitioned.data.data() + sizeof(EMdgm_f::EMdgmHeader));
     new_part->dgmNum = 1;
     new_part->numOfDgms = 1;
     d->kmall_dgmNum = 1;

@@ -84,9 +84,9 @@ TEST_F(Em2040Test, parseMRZversionF)
       byte_msg.data[i] = foo[i];
     }
     byte_msg.ds_header.io_time = ros::Time::now();
-    EMdgmMRZ mrz;
+    EMdgm_f::EMdgmMRZ mrz;
     bool ok = false;
-    std::tie(ok, mrz) = kmall::read_mrz<EMdgmMRZ>(byte_msg.data.data(), byte_msg.data.size());
+    std::tie(ok, mrz) = kmall::read_mrz<EMdgm_f::EMdgmMRZ>(byte_msg.data.data(), byte_msg.data.size());
     EXPECT_TRUE(ok);
   }else{
     FAIL() << "Failed reading file: " << mrz_version_f_path;

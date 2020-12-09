@@ -128,7 +128,7 @@ private:
   void _on_pu_connected_timeout(const ros::TimerEvent&);
   void _on_pinging_timeout(const ros::TimerEvent&);
 
-  static double _timeToLastPartition(const EMdgmHeader *hdr);
+  static double _timeToLastPartition(const EMdgm_f::EMdgmHeader *hdr);
 
   // All object members are hidden inside a pointer to preserve binary compatiblity
   // See https://wiki.qt.io/D-Pointer for explanation
