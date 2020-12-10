@@ -1,0 +1,12 @@
+- git:
+    local-name: ds_kongsberg_msgs
+    uri: https://github.com/Axel13fr/ds_kongsberg_msgs
+    version: master
+- git:
+    local-name: ds_msgs
+    uri: https://github.com/Axel13fr/ds_msgs.git
+    version: master
+- git:
+    local-name: librosasio
+    uri: https://github.com/Axel13fr/librosasio.git
+    version: master
