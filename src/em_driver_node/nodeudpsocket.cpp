@@ -8,8 +8,12 @@
 
 using namespace boost::asio::ip;
 
-NodeUdpSocket::NodeUdpSocket(boost::asio::io_service& io_service, const std::string& name, ros::NodeHandle &nh):
-      name_(name)
+  #if BOOST_VERSION < 106600
+  NodeUdpSocket::NodeUdpSocket(boost::asio::io_service& io_service, const std::string& name, ros::NodeHandle &nh)
+#else
+  NodeUdpSocket::NodeUdpSocket(boost::asio::io_context& io_service, const std::string& name, ros::NodeHandle &nh)
+#endif
+: name_(name)
 {
   recv_buffer_.resize(65536);
   const auto PARAM_PREFIX = name + "/";

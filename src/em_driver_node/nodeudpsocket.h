@@ -10,8 +10,13 @@ using ReceiveCallback = boost::function<void(const ds_core_msgs::RawData&)>;
 class NodeUdpSocket : boost::noncopyable
 {
  public:
+  #if BOOST_VERSION < 106600
   NodeUdpSocket(boost::asio::io_service &io_service, const std::string &name,
                 ros::NodeHandle &nh);
+#else
+  NodeUdpSocket(boost::asio::io_context &io_service, const std::string &name,
+                ros::NodeHandle &nh);
+#endif
 
   void sendData(const std::string &data);
   void setReceiveCb(const ReceiveCallback recv_cb)
