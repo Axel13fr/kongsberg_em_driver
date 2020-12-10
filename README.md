@@ -17,6 +17,6 @@ See .travis.rosinstall file
 
 The driver publishes a PointCloud2 topic containing the sonar data relative to the Vessel coordinate system (X towards vessel heading, Y starboard, Z down). To display the point cloud over time, the different vessel positions are provided by the ```~mrz_topic``` which contains latitude, longitude and heading. Using it to boardcast a tf between a fixed world coordinate system and the vessel position (after converting lat/long into a cartesian coordinate system) can then be done for RVIZ:
 
-![Example of replayed multibeam point cloud on RVIZ](https://github.com/Axel13fr/kongsberg_em_driver/tree/master/img/sonar_data.png)
+![Example of replayed multibeam point cloud on RVIZ](https://github.com/Axel13fr/kongsberg_em_driver/blob/master/img/sonar_data.png?raw=true)
 
 
