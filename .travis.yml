@@ -134,8 +134,8 @@ script:
   - source devel/setup.bash
 
   - mkdir statick-output
-  - cp ~/catkin_ws/src/lib_sonarcov/statick_config/rsc/_clang-format /home/travis/_clang-format
-  - statick src/lib_sonarcov --output-directory statick-output --user-paths src/lib_sonarcov/statick_config --clang-format-ignore-exception
+  - cp ~/catkin_ws/src/kongsberg_em_driver/statick_config/rsc/_clang-format /home/travis/_clang-format
+  - statick src/kongsberg_em_driver --output-directory statick-output --user-paths src/kongsberg_em_driver/statick_config --clang-format-ignore-exception
 
   # Run the tests, ensuring the path is set correctly.
   - rm -rf build devel
@@ -149,5 +149,5 @@ after_success:
   - lcov --list coverage.info # debug info
   - cat coverage.info # for debug
   # Uploading report to CodeCov
-  - cd ~/catkin_ws/src/lib_sonarcov
+  - cd ~/catkin_ws/src/kongsberg_em_driver
   - codecov --gcov-root ~/catkin_ws/build/
