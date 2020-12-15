@@ -187,6 +187,7 @@ KongsbergEM2040::parse_ipu(std::vector<std::string> fields)
 uint8_t
 KongsbergEM2040::read_good_bad_missing(std::string msg)
 {
+  (void)msg;
 //  boost::smatch results;
 //  auto good = boost::regex{ "=OK;G" };
 //  auto missing = boost::regex{ "=MISSING;R" };
@@ -216,7 +217,7 @@ KongsbergEM2040::read_bist_result(ds_core_msgs::RawData& raw)
   uint8_t* ptr = raw.data.data();
 
   r = *reinterpret_cast<EMdgm_f::dgm_IB*>(ptr);
-  int index = sizeof(r) - 2;
+  size_t index = sizeof(r) - 2;
   auto max_index = raw.data.size();
   if (max_index < index){
     return false;
@@ -258,7 +259,7 @@ KongsbergEM2040::read_kmall_dgm_from_kctrl(int type,const ds_core_msgs::RawData&
   }
   stripped_raw.data.resize(max_index-index);
 
-  for (int i=0; i<max_index-index; i++){
+  for (size_t i=0; i<max_index-index; i++){
     stripped_raw.data[i] = raw.data[i+index];
   }
   switch (type){
@@ -592,6 +593,10 @@ KongsbergEM2040::setupServices()
   d->settings_srv_ = d->nh_.advertiseService<ds_kongsberg_msgs::SettingsCmd::Request,
                                          ds_kongsberg_msgs::SettingsCmd::Response>
       (name + "/" + settings_srv, boost::bind(&KongsbergEM2040::_settings_cmd, this, _1, _2));
+  std::string msettings_srv = ros::param::param<std::string>("~multisettings_service", "multi_settings_cmd");
+  d->multi_settings_srv_ = d->nh_.advertiseService<ds_kongsberg_msgs::MultiSettingsCmd::Request,
+                                                 ds_kongsberg_msgs::MultiSettingsCmd::Response>
+      (name + "/" + msettings_srv, boost::bind(&KongsbergEM2040::_multisettings_cmd, this, _1, _2));
   std::string bist_srv = ros::param::param<std::string>("~bist_service", "bist_cmd");
   d->bist_srv_ = d->nh_.advertiseService<ds_kongsberg_msgs::BistCmd::Request, ds_kongsberg_msgs::BistCmd::Response>
       (name + "/" + bist_srv, boost::bind(&KongsbergEM2040::_bist_cmd, this, _1, _2));
@@ -682,7 +687,7 @@ KongsbergEM2040::setupTimers()
                                   &KongsbergEM2040::_on_kmall_timeout, this);
 
   auto kctrl_to = ros::param::param<double>("~kctrl_timeout", 3.0);
-  d->kctrl_timer = d->nh_.createTimer(ros::Duration(3),
+  d->kctrl_timer = d->nh_.createTimer(ros::Duration(kctrl_to),
                                   &KongsbergEM2040::_on_kctrl_timeout, this);
 
   auto pu_powered_to = ros::param::param<double>("~pu_powered_timeout", 50.0);
@@ -765,6 +770,14 @@ KongsbergEM2040::_settings_cmd(ds_kongsberg_msgs::SettingsCmd::Request &req, ds_
   res.command_sent = _send_kctrl_param(req.setting_name, req.setting_value);
   return true;
 }
+
+bool
+KongsbergEM2040::_multisettings_cmd(ds_kongsberg_msgs::MultiSettingsCmd::Request &req, ds_kongsberg_msgs::MultiSettingsCmd::Response &res)
+{
+  res.command_sent = _send_kctrl_param(req.settings);
+  return true;
+}
+
 bool
 KongsbergEM2040::_bist_cmd(ds_kongsberg_msgs::BistCmd::Request &req, ds_kongsberg_msgs::BistCmd::Response &res)
 {
@@ -944,10 +957,28 @@ KongsbergEM2040::_send_kctrl_param(std::vector<std::string> params, std::vector<
   ss << "$KSSIS,"
      << SIS_TO_K::SETVALUES << ","
      << d->m_status.sounder_name;
-  for (int i=0; i<params.size(); i++){
+  for (size_t i=0; i<params.size(); i++){
     ss << ","
        << params[i] << "="
        << vals[i];
+  }
+  auto msg = ss.str();
+  d->send_kctrl_data_(msg);
+  return msg;
+}
+
+std::string
+KongsbergEM2040::_send_kctrl_param(std::vector<KSetting> params)
+{
+
+  std::stringstream ss;
+  ss << "$KSSIS,"
+     << SIS_TO_K::SETVALUES << ","
+     << d->m_status.sounder_name;
+  for (size_t i=0; i<params.size(); i++){
+    ss << ","
+       << params[i].name << "="
+       << params[i].value;
   }
   auto msg = ss.str();
   d->send_kctrl_data_(msg);
@@ -986,7 +1017,7 @@ KongsbergEM2040::_run_next_bist()
     fs.open (d->m_status.bist_filename, std::ios::app);
     fs << "BIST started at " << boost::posix_time::second_clock::universal_time() << "\n";
     fs << "Includes tests...\n";
-    for (const auto test : d->bist_tests){
+    for (const auto& test : d->bist_tests){
       fs << "\t" << test << "\n";
     }
     fs << "--------------------------------\n";
@@ -1075,7 +1106,7 @@ KongsbergEM2040::_write_kctrl_xml(std::vector<uint8_t>& data)
     ROS_ERROR_STREAM("Bad XML received, logged anyways");
     return;
   }
-  for (int i=0; i<params.size(); i++){
+  for (size_t i=0; i<params.size(); i++){
     if (params[i] == "SDPM1") {
       ROS_INFO_STREAM("PING FREQ: " << params[i] << " val: " << vals[i]);
       d->m_status.rt_ping_freq = vals[i];
@@ -1227,7 +1258,7 @@ void KongsbergEM2040::_read_and_publish_mrz(const ds_kongsberg_msgs::KongsbergKM
     mrz_msg.ds_header = r.ds_header;
     d->mrz_pub_.publish(mrz_msg);
 
-    d->pointcloud_pub_.publish(mrz_to_pointcloud(mrz, d->mrz_frame_id_));
+    d->pointcloud_pub_.publish(mrz_to_pointcloud2(mrz, d->mrz_frame_id_));
     auto delta_ping = mrz.cmnPart.pingCnt - d->m_status.ping_num;
     ROS_ERROR_STREAM_COND((delta_ping > 1) && (d->m_status.ping_num != 0),
                           "Missed ping between " << d->m_status.ping_num << " and " << mrz.cmnPart.pingCnt);

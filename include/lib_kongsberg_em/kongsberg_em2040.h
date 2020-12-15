@@ -43,10 +43,12 @@
 #include "ds_kongsberg_msgs/PingCmd.h"
 #include "ds_kongsberg_msgs/PowerCmd.h"
 #include "ds_kongsberg_msgs/SettingsCmd.h"
+#include "ds_kongsberg_msgs/MultiSettingsCmd.h"
 #include "ds_kongsberg_msgs/BistCmd.h"
 #include "ds_kongsberg_msgs/LoadXmlCmd.h"
 #include "ds_kongsberg_msgs/KongsbergStatus.h"
 #include "ds_kongsberg_msgs/KongsbergKMAllRecord.h"
+#include "ds_kongsberg_msgs/KongsbergSetting.h"
 
 #include <ds_multibeam_msgs/MultibeamRaw.h>
 #include <boost/utility.hpp>
@@ -57,6 +59,7 @@ namespace kongsberg_em{
 
 struct KongsbergEM2040Private;
 using SendKCtrlDataFunc = std::function<void(const std::string &)>;
+using KSetting = ds_kongsberg_msgs::KongsbergSetting;
 
 class KongsbergEM2040  : boost::noncopyable
 {
@@ -103,6 +106,7 @@ private:
   bool _ping_cmd(ds_kongsberg_msgs::PingCmd::Request &req, ds_kongsberg_msgs::PingCmd::Response &res);
   bool _power_cmd(ds_kongsberg_msgs::PowerCmd::Request &req, ds_kongsberg_msgs::PowerCmd::Response &res);
   bool _settings_cmd(ds_kongsberg_msgs::SettingsCmd::Request &req, ds_kongsberg_msgs::SettingsCmd::Response &res);
+  bool _multisettings_cmd(ds_kongsberg_msgs::MultiSettingsCmd::Request &req, ds_kongsberg_msgs::MultiSettingsCmd::Response &res);
   bool _bist_cmd(ds_kongsberg_msgs::BistCmd::Request &req, ds_kongsberg_msgs::BistCmd::Response &res);
   bool _load_xml_cmd(ds_kongsberg_msgs::LoadXmlCmd::Request &req, ds_kongsberg_msgs::LoadXmlCmd::Response &res);
 
@@ -111,6 +115,8 @@ private:
   std::string _send_kctrl_param(std::string param, T1 param_val);
   template <class T1>
   std::string _send_kctrl_param(std::vector<std::string> params, std::vector<T1> vals);
+  std::string _send_kctrl_param(std::vector<KSetting> params);
+
   template <class EMdgmMRZ_S>
   void _read_and_publish_mrz(const ds_kongsberg_msgs::KongsbergKMAllRecord &r,
                              std::vector<uint8_t> &data);

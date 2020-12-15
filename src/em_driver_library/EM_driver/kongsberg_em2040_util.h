@@ -153,7 +153,7 @@ static ds_multibeam_msgs::MultibeamRaw mrz_to_mb_raw(EMdgmMRZ_S* msg){
 }
 
 template <typename EMdgmMRZ_S>
-static sensor_msgs::PointCloud2 mrz_to_pointcloud(const EMdgmMRZ_S& msg,
+static sensor_msgs::PointCloud2 mrz_to_pointcloud2(const EMdgmMRZ_S& msg,
                                                   const std::string &frame_id){
   pcl::PointCloud<pcl::PointXYZI> pcl;
   int num_soundings = msg.rxInfo.numSoundingsMaxMain + msg.rxInfo.numExtraDetections;
