@@ -640,6 +640,10 @@ KongsbergEM2040::setupParameters()
   d->m_status.rt_max_ping_rate = "0";
   d->m_status.rt_min_swath_distance = "0";
   d->m_status.rt_trigger = "0";
+  d->m_status.rt_port_angle = "0";
+  d->m_status.rt_stbd_angle = "0";
+  d->m_status.rt_port_coverage = "0";
+  d->m_status.rt_stbd_coverage = "0";
   // other parameters
   d->mrz_frame_id_ = ros::param::param<std::string>("~mrz_frame_id", "sonar_vcs");
   d->save_kmall_files = ros::param::param<bool>("~save_kmall_files", true);
