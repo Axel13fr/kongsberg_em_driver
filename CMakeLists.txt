@@ -97,6 +97,6 @@ install(DIRECTORY
         launch/em2040_parse_test.test
         src/test/test_kongsberg_em2040_parsing.cpp)
     target_link_libraries(test_em2040_parse lib_kongsberg_em)
-    catkin_add_gtest(test_em2040_utils src/test/test_kongsberg_em2040_util.cpp)
+    catkin_add_gtest(test_em2040_utils src/test/test_kongsberg_em2040_util.cpp WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
     target_link_libraries(test_em2040_utils lib_kongsberg_em)
 #endif(CATKIN_ENABLE_TESTING)

@@ -1149,7 +1149,20 @@ KongsbergEM2040::_write_kctrl_xml(std::vector<uint8_t>& data)
     } else if (params[i] == "STPK") {
       ROS_INFO_STREAM("MIN SWATH param: " << params[i] << " val: " << vals[i]);
       d->m_status.rt_min_swath_distance = vals[i];
+    } else if(params[i] == "SSPA1"){
+      ROS_INFO_STREAM("MAX PORT ANGLE param: " << params[i] << " val: " << vals[i]);
+      d->m_status.rt_port_angle = vals[i];
+    } else if (params[i] == "SSSA1"){
+      ROS_INFO_STREAM("MAX STBD ANGLE param: " << params[i] << " val: " << vals[i]);
+      d->m_status.rt_stbd_angle = vals[i];
+    } else if (params[i] == "SSPC"){
+      ROS_INFO_STREAM("PORT COVERAGE param: " << params[i] << " val: " << vals[i]);
+      d->m_status.rt_port_coverage = vals[i];
+    } else if (params[i] == "SSSC"){
+      ROS_INFO_STREAM("STBD COVERAGE param: " << params[i] << " val: " << vals[i]);
+      d->m_status.rt_stbd_coverage = vals[i];
     }
+
   }
   d->kmstatus_pub_.publish(d->m_status);
 }
