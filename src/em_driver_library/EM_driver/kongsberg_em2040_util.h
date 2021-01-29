@@ -162,7 +162,7 @@ static sensor_msgs::PointCloud2 mrz_to_pointcloud2(const EMdgmMRZ_S& msg,
   {
     pt.x = msg.sounding[i].x_reRefPoint_m;
     pt.y = msg.sounding[i].y_reRefPoint_m;
-    pt.z = msg.sounding[i].z_reRefPoint_m;
+    pt.z = msg.sounding[i].z_reRefPoint_m - msg.pingInfo.z_waterLevelReRefPoint_m;
     pt.intensity = msg.sounding[i].reflectivity1_dB;
     pcl.push_back(pt);
   }
