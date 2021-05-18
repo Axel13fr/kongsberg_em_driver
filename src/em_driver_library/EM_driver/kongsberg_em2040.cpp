@@ -39,6 +39,7 @@
 #include "ds_kongsberg_msgs/KongsbergMRZ.h"
 #include "kongsberg_em2040_strings.h"
 #include "ds_core_msgs/ClockOffset.h"
+#include <std_msgs/Float32.h>
 #include <regex>
 
 #include <ros/this_node.h>
@@ -666,6 +667,9 @@ KongsbergEM2040::setupPublishers()
   auto pointcloud_topic = ros::param::param<std::string>("~pointcloud_topic", "pointcloud");
   d->pointcloud_pub_ = d->nh_.advertise<sensor_msgs::PointCloud2>(name + "/" + pointcloud_topic, 1000);
 
+  auto depth_topic = ros::param::param<std::string>("~depth_topic", "depth");
+  d->depth_pub_ = d->nh_.advertise<std_msgs::Float32>(name + "/" + depth_topic, 1);
+
   auto kssis_topic = ros::param::param<std::string>("~kssis_topic", "kssis");
   d->kssis_pub_ = d->nh_.advertise<ds_kongsberg_msgs::KongsbergKSSIS>(name + "/" + kssis_topic, 1000);
 
@@ -1275,7 +1279,12 @@ void KongsbergEM2040::_read_and_publish_mrz(const ds_kongsberg_msgs::KongsbergKM
     mrz_msg.ds_header = r.ds_header;
     d->mrz_pub_.publish(mrz_msg);
 
-    d->pointcloud_pub_.publish(mrz_to_pointcloud2(mrz, d->mrz_frame_id_));
+    float min_depth_m;
+    d->pointcloud_pub_.publish(mrz_to_pointcloud2(mrz, d->mrz_frame_id_, min_depth_m));
+
+    std_msgs::Float32 d_msg;
+    d_msg.data = min_depth_m;
+    d->depth_pub_.publish(d_msg);
     auto delta_ping = mrz.cmnPart.pingCnt - d->m_status.ping_num;
     ROS_ERROR_STREAM_COND((delta_ping > 1) && (d->m_status.ping_num != 0),
                           "Missed ping between " << d->m_status.ping_num << " and " << mrz.cmnPart.pingCnt);

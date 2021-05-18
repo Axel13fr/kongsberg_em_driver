@@ -154,10 +154,15 @@ static ds_multibeam_msgs::MultibeamRaw mrz_to_mb_raw(EMdgmMRZ_S* msg){
 
 template <typename EMdgmMRZ_S>
 static sensor_msgs::PointCloud2 mrz_to_pointcloud2(const EMdgmMRZ_S& msg,
-                                                  const std::string &frame_id){
+                                                  const std::string &frame_id, float& min_depth_m){
   pcl::PointCloud<pcl::PointXYZI> pcl;
   int num_soundings = msg.rxInfo.numSoundingsMaxMain + msg.rxInfo.numExtraDetections;
   pcl::PointXYZI pt;
+  // Consider the max measurable depth of the sounder to keep the min depth
+  // The minimum value might be noisy, TODO: add an outlier rejection filter ?
+  static constexpr auto MAX_DEPTH_M = 1000.;
+  min_depth_m = MAX_DEPTH_M;
+
   for (int i = 0; i < num_soundings; i++)
   {
     pt.x = msg.sounding[i].x_reRefPoint_m;
@@ -165,6 +170,7 @@ static sensor_msgs::PointCloud2 mrz_to_pointcloud2(const EMdgmMRZ_S& msg,
     pt.z = msg.sounding[i].z_reRefPoint_m - msg.pingInfo.z_waterLevelReRefPoint_m;
     pt.intensity = msg.sounding[i].reflectivity1_dB;
     pcl.push_back(pt);
+    min_depth_m = std::min(pt.z, min_depth_m);
   }
 
   sensor_msgs::PointCloud2 m;

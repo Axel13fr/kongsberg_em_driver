@@ -17,7 +17,7 @@ using namespace boost::asio::ip;
 {
   recv_buffer_.resize(65536);
   const auto PARAM_PREFIX = name + "/";
-  if (not nh.hasParam(PARAM_PREFIX + "udp_rx_port") or not nh.hasParam(name + "/udp_tx_port") or
+  if (not nh.hasParam(PARAM_PREFIX + "udp_rx_port") or not nh.hasParam(PARAM_PREFIX + "udp_tx_port") or
       not nh.hasParam(PARAM_PREFIX + "udp_address"))
   {
     ROS_FATAL_STREAM("Missing udp_rx_port or udp_tx_port or udp_address parameter for socket " << name);
