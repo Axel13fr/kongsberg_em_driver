@@ -735,23 +735,20 @@ KongsbergEM2040::_ping_cmd(ds_kongsberg_msgs::PingCmd::Request &req, ds_kongsber
   }
   switch (req.ping){
     case ds_kongsberg_msgs::PingCmd::Request::PING_START :
-//      _new_kmall_file();
-      _send_kctrl_command(SIS_TO_K::LOG_IOP_SVP);
+      // Do not start logging on PING START
       _send_kctrl_command(SIS_TO_K::START_PING);
       d->m_status.commanded_pinging = true;
-      res.action = "Commanded ping start, created new kmall file, logged IOP and SVP information";
+      res.action = "Commanded ping start";
       break;
     case ds_kongsberg_msgs::PingCmd::Request::PING_STOP :
+      // This should stop recording as well
       _send_kctrl_command(SIS_TO_K::STOP_PING);
       d->m_status.commanded_pinging = false;
       res.action = "Commanded ping stop";
       break;
     case ds_kongsberg_msgs::PingCmd::Request::PING_NEWFILE :
-//      _send_kctrl_command(SIS_TO_K::STOP_PING);
-//      _new_kmall_file();
       _send_kctrl_command(SIS_TO_K::LOG_IOP_SVP);
-//      _send_kctrl_command(SIS_TO_K::START_PING);
-      res.action = "Requested IOP SVP Header";
+      res.action = "Requested IOP SVP Header,  created new kmall file, logged IOP and SVP information";
       break;
     case ds_kongsberg_msgs::PingCmd::Request::PING_STARTUP :
       _startup_sequence();
