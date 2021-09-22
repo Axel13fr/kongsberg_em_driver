@@ -130,7 +130,9 @@ KongsbergEM2040::parse_message(const ds_core_msgs::RawData& raw)
         break;
       }
       if (fields[2] != d->m_status.sounder_name){
-        ROS_ERROR_STREAM("Sounder name doesn't match : "<<fields[2]);
+        ROS_WARN_STREAM("IPU sounder name doesn't match: automatic update from " << d->m_status.sounder_name << " to "
+                                                                                 << fields[2]);
+        d->m_status.sounder_name = fields[2];
         return false;
       }
       break;
@@ -154,7 +156,9 @@ KongsbergEM2040::parse_ipu(std::vector<std::string> fields)
   }
 
   if (fields[2] != d->m_status.sounder_name){
-    ROS_ERROR_STREAM("IPU sounder name doesn't match");
+    ROS_WARN_STREAM("IPU sounder name doesn't match: automatic update from " << d->m_status.sounder_name << " to "
+                                                                             << fields[2]);
+    d->m_status.sounder_name = fields[2];
     return false;
   }
 //  d_ptr_->m_status.cpu_temperature = read_good_bad_missing(fields[4]);
