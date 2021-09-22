@@ -2,6 +2,7 @@
 
 #include "EMdgmFormat.h"
 #include "EMdgmFormat_h.h"
+#include "EMdgmFormat_i.h"
 #include <utility>
 #include <cstring>
 #include <ros/console.h>
@@ -10,14 +11,23 @@ namespace kmall
 {
 // The code below assumes manu constants and structures not to change between protocol revisions
 // This is checked at compile time here
-static_assert(EMdgm_f::MAX_NUM_BEAMS == EMdgm_h::MAX_NUM_BEAMS, "Format definition missmatch");
-static_assert(EMdgm_f::MAX_EXTRA_DET == EMdgm_h::MAX_EXTRA_DET, "Format definition missmatch");
-static_assert(EMdgm_f::MAX_EXTRA_DET_CLASSES == EMdgm_h::MAX_EXTRA_DET_CLASSES, "Format definition missmatch");
-static_assert(EMdgm_f::MAX_NUM_TX_PULSES == EMdgm_h::MAX_NUM_TX_PULSES, "Format definition missmatch");
-static_assert(EMdgm_f::MAX_DGM_SIZE == EMdgm_h::MAX_DGM_SIZE, "Format definition missmatch");
+static_assert(EMdgm_f::MAX_NUM_BEAMS == EMdgm_h::MAX_NUM_BEAMS
+              && EMdgm_i::MAX_NUM_BEAMS == EMdgm_h::MAX_NUM_BEAMS, "Format definition missmatch");
+static_assert(EMdgm_f::MAX_NUM_BEAMS == EMdgm_h::MAX_NUM_BEAMS
+              && EMdgm_i::MAX_NUM_BEAMS == EMdgm_h::MAX_NUM_BEAMS, "Format definition missmatch");
+static_assert(EMdgm_f::MAX_EXTRA_DET == EMdgm_h::MAX_EXTRA_DET
+              && EMdgm_i::MAX_EXTRA_DET == EMdgm_h::MAX_EXTRA_DET, "Format definition missmatch");
+static_assert(EMdgm_f::MAX_EXTRA_DET_CLASSES == EMdgm_h::MAX_EXTRA_DET_CLASSES
+              && EMdgm_i::MAX_EXTRA_DET_CLASSES == EMdgm_h::MAX_EXTRA_DET_CLASSES, "Format definition missmatch");
+static_assert(EMdgm_f::MAX_NUM_TX_PULSES == EMdgm_h::MAX_NUM_TX_PULSES
+              && EMdgm_i::MAX_NUM_TX_PULSES == EMdgm_h::MAX_NUM_TX_PULSES, "Format definition missmatch");
+static_assert(EMdgm_f::MAX_DGM_SIZE == EMdgm_h::MAX_DGM_SIZE
+              && EMdgm_i::MAX_DGM_SIZE == EMdgm_h::MAX_DGM_SIZE, "Format definition missmatch");
 // Structures expected to be the same between revisions, let's check at least the size..
-static_assert(sizeof(EMdgm_f::EMdgmHeader) == sizeof(EMdgm_h::EMdgmHeader), "Format definition missmatch");
-static_assert(sizeof(EMdgm_f::EMdgmMpartition) == sizeof(EMdgm_h::EMdgmMpartition), "Format definition missmatch");
+static_assert(sizeof(EMdgm_f::EMdgmHeader) == sizeof(EMdgm_h::EMdgmHeader)
+              && sizeof(EMdgm_i::EMdgmHeader) == sizeof(EMdgm_h::EMdgmHeader), "Format definition missmatch");
+static_assert(sizeof(EMdgm_f::EMdgmMpartition) == sizeof(EMdgm_h::EMdgmMpartition)
+              && sizeof(EMdgm_i::EMdgmMpartition) == sizeof(EMdgm_h::EMdgmMpartition), "Format definition missmatch");
 
 
 template <typename Struct>

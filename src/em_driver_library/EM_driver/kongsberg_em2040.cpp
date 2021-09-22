@@ -369,7 +369,11 @@ KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
       }
       else if (dgmVersion == EMdgm_h::MRZ_VERSION)
       {
-        _read_and_publish_mrz<EMdgm_h::EMdgmMRZ>(r,logme.data);
+        _read_and_publish_mrz<EMdgm_h::EMdgmMRZ>(r, logme.data);
+      }
+      else if (dgmVersion == EMdgm_i::MRZ_VERSION)
+      {
+        _read_and_publish_mrz<EMdgm_i::EMdgmMRZ>(r,logme.data);
       }else{
         ROS_ERROR_STREAM("Received MRZ unsupported message version "
                          << std::to_string(dgmVersion));
@@ -392,6 +396,8 @@ KongsbergEM2040::parse_data(const ds_core_msgs::RawData& raw)
       if(dgmVersion == EMdgm_f::MWC_VERSION){
         //TODO: decode water column ?
       }else if(dgmVersion == EMdgm_h::MWC_VERSION){
+        //TODO: decode water column ?
+      }else if(dgmVersion == EMdgm_i::MWC_VERSION){
         //TODO: decode water column ?
       }else{
         ROS_ERROR_STREAM("Received MWC unsupported message version "
