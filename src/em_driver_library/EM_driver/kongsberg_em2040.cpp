@@ -757,7 +757,9 @@ KongsbergEM2040::_ping_cmd(ds_kongsberg_msgs::PingCmd::Request &req, ds_kongsber
       res.action = "Commanded ping stop";
       break;
     case ds_kongsberg_msgs::PingCmd::Request::PING_NEWFILE :
+      _send_kctrl_command(SIS_TO_K::STOP_PING);
       _send_kctrl_command(SIS_TO_K::LOG_IOP_SVP);
+      _send_kctrl_command(SIS_TO_K::START_PING);
       res.action = "Requested IOP SVP Header,  created new kmall file, logged IOP and SVP information";
       break;
     case ds_kongsberg_msgs::PingCmd::Request::PING_STARTUP :
