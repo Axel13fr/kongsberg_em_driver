@@ -666,7 +666,7 @@ struct EMdgmMWC_def
   struct EMdgmMWCrxBeamData_def *beamData_p;
 };
 
-static constexpr auto MWC_VERSION = 1;
+static constexpr auto MWC_VERSION = 2;
 typedef struct EMdgmMWC_def EMdgmMWC, *pEMdgmMWC;
 
 
