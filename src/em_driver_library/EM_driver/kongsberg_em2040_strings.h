@@ -277,7 +277,7 @@ struct runtime_params{
   std::string FORCE_DEPTH = "RUNT_PARAM_PU_FORCE_DEPTH=1.0"; //float
   std::string MIN_DEPTH = "RUNT_PARAM_PU_MIN_DEPTH=1"; //int
   std::string MAX_DEPTH = "RUNT_PARAM_PU_MAX_DEPTH=150"; //int
-  std::string FREQUENCY = "RUNT_PARAM_PU_MAX_PING_FREQ=200kHz"; // 300kHz 400kHz
+  std::string FREQUENCY = "RUNT_PARAM_PU_PING_MODE=200kHz"; // 300kHz 400kHz
   std::string DEPTH_MODE = "RUNT_PARAM_PU_PULSE_TYPE1=Auto"; // Shallow Medium Deep "Very deep"
   std::string DETECTOR_MODE = "RUNT_PARAM_PU_DETECTOR_MODE=Normal"; // Waterway Tracking "Min. depth"
   std::string FM_DISABLE = "RUNT_PARAM_PU_FM_PULSE=1"; //bool
@@ -288,7 +288,7 @@ struct runtime_params{
   std::string TXMIT_ANGLE_ALONG = "RUNT_PARAM_PU_TX_ANGLE=1.00"; //float
   std::string YAW_STAB = "RUNT_PARAM_PU_SEL_STAB_MODE=Rel. mean heading"; // Off Manual
   std::string HEADING_FILTER = "RUNT_PARAM_PU_HEAD_FILTER=Weak"; //Medium Hard
-  std::string MAX_PING_RATE = "RUNT_PARAM_PU_PING_MODE=55.00"; //float
+  std::string MAX_PING_RATE = "RUNT_PARAM_PU_MAX_PING_FREQ=55.00"; //float
   std::string MIN_SWATH_DISTANCE = "RUNT_PARAM_PU_MIN_SWATH_DIST=1"; //int
   std::string EXTERNAL_TRIGGER = "RUNT_PARAM_PU_EXT_TRIG=1"; //bool
   // FILTERS
