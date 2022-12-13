@@ -49,6 +49,7 @@
 #include "ds_kongsberg_msgs/KongsbergStatus.h"
 #include "ds_kongsberg_msgs/KongsbergKMAllRecord.h"
 #include "ds_kongsberg_msgs/KongsbergSetting.h"
+#include "ds_kongsberg_msgs/KongsbergRuntimeParams.h"
 
 #include <ds_multibeam_msgs/MultibeamRaw.h>
 #include <boost/utility.hpp>

@@ -635,25 +635,25 @@ KongsbergEM2040::setupParameters()
   d->m_status.svp = "";
   d->m_status.time_sync = "";
   d->m_status.pps = "";
-  d->m_status.rt_force_depth = "0";
-  d->m_status.rt_min_depth = "0";
-  d->m_status.rt_max_depth = "0";
-  d->m_status.rt_ping_freq = "0";
-  d->m_status.rt_depth_mode = "0";
-  d->m_status.rt_detector_mode = "0";
-  d->m_status.rt_fm_disable = "0";
-  d->m_status.rt_log_watercol = "0";
-  d->m_status.rt_extra_detect = "0";
-  d->m_status.rt_pitch_stab = "0";
-  d->m_status.rt_tx_angle_along = "0";
-  d->m_status.rt_yaw_stab = "0";
-  d->m_status.rt_max_ping_rate = "0";
-  d->m_status.rt_min_swath_distance = "0";
-  d->m_status.rt_trigger = "0";
-  d->m_status.rt_port_angle = "0";
-  d->m_status.rt_stbd_angle = "0";
-  d->m_status.rt_port_coverage = "0";
-  d->m_status.rt_stbd_coverage = "0";
+  d->m_rtParams.rt_force_depth = "0";
+  d->m_rtParams.rt_min_depth = "0";
+  d->m_rtParams.rt_max_depth = "0";
+  d->m_rtParams.rt_ping_freq = "0";
+  d->m_rtParams.rt_depth_mode = "0";
+  d->m_rtParams.rt_detector_mode = "0";
+  d->m_rtParams.rt_fm_disable = "0";
+  d->m_rtParams.rt_log_watercol = "0";
+  d->m_rtParams.rt_extra_detect = "0";
+  d->m_rtParams.rt_pitch_stab = "0";
+  d->m_rtParams.rt_tx_angle_along = "0";
+  d->m_rtParams.rt_yaw_stab = "0";
+  d->m_rtParams.rt_max_ping_rate = "0";
+  d->m_rtParams.rt_min_swath_distance = "0";
+  d->m_rtParams.rt_trigger = "0";
+  d->m_rtParams.rt_port_angle = "0";
+  d->m_rtParams.rt_stbd_angle = "0";
+  d->m_rtParams.rt_port_coverage = "0";
+  d->m_rtParams.rt_stbd_coverage = "0";
   // other parameters
   d->mrz_frame_id_ = ros::param::param<std::string>("~mrz_frame_id", "sonar_vcs");
   d->save_kmall_files = ros::param::param<bool>("~save_kmall_files", true);
@@ -687,6 +687,9 @@ KongsbergEM2040::setupPublishers()
 
   auto kmstatus_topic = ros::param::param<std::string>("~kmstatus_topic", "kmstatus");
   d->kmstatus_pub_ = d->nh_.advertise<ds_kongsberg_msgs::KongsbergStatus>(name + "/" + kmstatus_topic, 1000);
+
+  auto rtparam_topic = ros::param::param<std::string>("~km_rt_params_topic", "runtime_params");
+  d->rt_params_pub_ = d->nh_.advertise<ds_kongsberg_msgs::KongsbergRuntimeParams>(name + "/" + rtparam_topic, 1000);
 
   auto mrz_topic = ros::param::param<std::string>("~mrz_topic", "mrz");
   d->mrz_pub_ = d->nh_.advertise<ds_kongsberg_msgs::KongsbergMRZ>(name + "/" + mrz_topic, 1000);
@@ -1120,62 +1123,62 @@ KongsbergEM2040::_write_kctrl_xml(std::vector<uint8_t>& data)
   for (size_t i=0; i<params.size(); i++){
     if (params[i] == "SDPM1") {
       ROS_INFO_STREAM("PING FREQ: " << params[i] << " val: " << vals[i]);
-      d->m_status.rt_ping_freq = vals[i];
+      d->m_rtParams.rt_ping_freq = vals[i];
     } else if (params[i] == "SDFD") {
       ROS_INFO_STREAM("FORCE DEPTH param: "<<params[i]<<" val: "<<vals[i]);
-      d->m_status.rt_force_depth = vals[i];
+      d->m_rtParams.rt_force_depth = vals[i];
     } else if (params[i] == "SDMA") {
       ROS_INFO_STREAM("MAX DEPTH param: "<<params[i]<<" val: "<<vals[i]);
-      d->m_status.rt_max_depth = vals[i];
+      d->m_rtParams.rt_max_depth = vals[i];
     } else if (params[i] == "SDMI") {
       ROS_INFO_STREAM("MIN DEPTH param: " << params[i] << " val: " << vals[i]);
-      d->m_status.rt_min_depth = vals[i];
+      d->m_rtParams.rt_min_depth = vals[i];
     } else if (params[i] == "SDDM") {
       ROS_INFO_STREAM("DETECTOR MODE param: "<<params[i]<<" val: "<<vals[i]);
-      d->m_status.rt_detector_mode = vals[i];
+      d->m_rtParams.rt_detector_mode = vals[i];
     } else if (params[i] == "SDFM") {
       ROS_INFO_STREAM("FM DISABLE param: " << params[i] << " val: " << vals[i]);
-      d->m_status.rt_fm_disable = vals[i];
+      d->m_rtParams.rt_fm_disable = vals[i];
     } else if (params[i] == "SDED") {
       ROS_INFO_STREAM("EXTRA DETECT param: "<<params[i]<<" val: "<<vals[i]);
-      d->m_status.rt_extra_detect = vals[i];
+      d->m_rtParams.rt_extra_detect = vals[i];
     } else if (params[i] == "SDPT1") {
       ROS_INFO_STREAM("DEPTH MODE param: "<<params[i]<<" val: "<<vals[i]);
-      d->m_status.rt_depth_mode = vals[i];
+      d->m_rtParams.rt_depth_mode = vals[i];
     } else if (params[i] == "STET") {
       ROS_INFO_STREAM("TRIGGER param: "<<params[i]<<" val: "<<vals[i]);
-      d->m_status.rt_trigger = vals[i];
+      d->m_rtParams.rt_trigger = vals[i];
     } else if (params[i] == "STYAMO") {
       ROS_INFO_STREAM("YAW STAB param: "<<params[i]<<" val: "<<vals[i]);
-      d->m_status.rt_yaw_stab = vals[i];
+      d->m_rtParams.rt_yaw_stab = vals[i];
     } else if (params[i] == "STXA") {
       ROS_INFO_STREAM("TX ANGLE param: " << params[i] << " val: " << vals[i]);
-      d->m_status.rt_tx_angle_along = vals[i];
+      d->m_rtParams.rt_tx_angle_along = vals[i];
     } else if (params[i] == "STPS") {
       ROS_INFO_STREAM("PITCH STAB param: " << params[i] << " val: " << vals[i]);
-      d->m_status.rt_pitch_stab = vals[i];
+      d->m_rtParams.rt_pitch_stab = vals[i];
     } else if (params[i] == "STPF") {
       ROS_INFO_STREAM("PING RATE param: " << params[i] << " val: " << vals[i]);
-      d->m_status.rt_max_ping_rate = vals[i];
+      d->m_rtParams.rt_max_ping_rate = vals[i];
     } else if (params[i] == "STPK") {
       ROS_INFO_STREAM("MIN SWATH param: " << params[i] << " val: " << vals[i]);
-      d->m_status.rt_min_swath_distance = vals[i];
+      d->m_rtParams.rt_min_swath_distance = vals[i];
     } else if(params[i] == "SSPA1"){
       ROS_INFO_STREAM("MAX PORT ANGLE param: " << params[i] << " val: " << vals[i]);
-      d->m_status.rt_port_angle = vals[i];
+      d->m_rtParams.rt_port_angle = vals[i];
     } else if (params[i] == "SSSA1"){
       ROS_INFO_STREAM("MAX STBD ANGLE param: " << params[i] << " val: " << vals[i]);
-      d->m_status.rt_stbd_angle = vals[i];
+      d->m_rtParams.rt_stbd_angle = vals[i];
     } else if (params[i] == "SSPC"){
       ROS_INFO_STREAM("PORT COVERAGE param: " << params[i] << " val: " << vals[i]);
-      d->m_status.rt_port_coverage = vals[i];
+      d->m_rtParams.rt_port_coverage = vals[i];
     } else if (params[i] == "SSSC"){
       ROS_INFO_STREAM("STBD COVERAGE param: " << params[i] << " val: " << vals[i]);
-      d->m_status.rt_stbd_coverage = vals[i];
+      d->m_rtParams.rt_stbd_coverage = vals[i];
     }
 
   }
-  d->kmstatus_pub_.publish(d->m_status);
+  d->rt_params_pub_.publish(d->m_rtParams);
 }
 
 std::string

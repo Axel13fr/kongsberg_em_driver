@@ -61,6 +61,7 @@ struct KongsbergEM2040Private{
   ros::Publisher kssis_pub_;
   ros::Publisher kmstatus_pub_;
   ros::Publisher kmall_record_pub_;
+  ros::Publisher rt_params_pub_;
 
   // The MRZ data from the KMALL format are provided wrt
   // "Vessel Coordinate System" as configured in installation parameters
@@ -68,6 +69,7 @@ struct KongsbergEM2040Private{
 
   // KCtrl startup info
   ds_kongsberg_msgs::KongsbergStatus m_status;
+  ds_kongsberg_msgs::KongsbergRuntimeParams m_rtParams;
 
   ros::Timer kctrl_timer;
   ros::Timer kmall_timer;
