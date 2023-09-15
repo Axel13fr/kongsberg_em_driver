@@ -474,7 +474,7 @@ KongsbergEM2040::check_and_append_mpartition(const ds_core_msgs::RawData& raw_p)
     new_part->dgmNum = 1;
     new_part->numOfDgms = 1;
     d->kmall_dgmNum = 1;
-    ROS_INFO_STREAM("Part " << d->kmall_dgmNum << "/" << d->kmall_numOfDgms << " with size " << max_length << " DeltaT "
+    ROS_DEBUG_STREAM("Part " << d->kmall_dgmNum << "/" << d->kmall_numOfDgms << " with size " << max_length << " DeltaT "
                             << delta_t_ms);
     return {false, {}};
   }
@@ -502,7 +502,7 @@ KongsbergEM2040::check_and_append_mpartition(const ds_core_msgs::RawData& raw_p)
       // Overwrite the ending values for the length
       d->kmall_partitioned.data.resize(current_length + max_length - count - 4);
       memcpy(d->kmall_partitioned.data.data() + current_length - 4,ptr + count, max_length - count);
-      ROS_INFO_STREAM("Next Part " << partition->dgmNum<< "/"<< partition->numOfDgms << " with size "<<max_length
+      ROS_DEBUG_STREAM("Next Part " << partition->dgmNum<< "/"<< partition->numOfDgms << " with size "<<max_length
                                   <<  " DeltaT " << delta_t_ms);
       d->kmall_dgmNum = partition->dgmNum;
     }else{
@@ -522,7 +522,7 @@ KongsbergEM2040::check_and_append_mpartition(const ds_core_msgs::RawData& raw_p)
     *starting_size_ptr = data_size;
     auto ending_size_ptr = reinterpret_cast<uint32_t*>(d->kmall_partitioned.data.data() + d->kmall_partitioned.data.size() - 4);
     *ending_size_ptr = data_size;
-    ROS_INFO_STREAM("Partition complete! Total size "<< data_size<<" bytes");
+    ROS_DEBUG_STREAM("Partition complete! Total size "<< data_size<<" bytes");
     d->kmall_dgmNum = 0;
     d->kmall_numOfDgms = 0;
     return {true, d->kmall_partitioned};
@@ -1245,7 +1245,7 @@ KongsbergEM2040::_on_kmall_timeout(const ros::TimerEvent&)
 
   if (d->m_status.kmall_connected){
     ROS_ERROR_STREAM("Kmall stream timed out... assume totally disconnected");
-    ROS_INFO_STREAM("Received " << d->pck_cnt << " KMALL packets");
+    ROS_DEBUG_STREAM("Received " << d->pck_cnt << " KMALL packets");
     d->pck_cnt = 0;
   }
   d->m_status.kmall_connected = false;
