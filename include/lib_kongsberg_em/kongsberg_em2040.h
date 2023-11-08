@@ -108,6 +108,7 @@ private:
   bool _power_cmd(ds_kongsberg_msgs::PowerCmd::Request &req, ds_kongsberg_msgs::PowerCmd::Response &res);
   bool _settings_cmd(ds_kongsberg_msgs::SettingsCmd::Request &req, ds_kongsberg_msgs::SettingsCmd::Response &res);
   bool _multisettings_cmd(ds_kongsberg_msgs::MultiSettingsCmd::Request &req, ds_kongsberg_msgs::MultiSettingsCmd::Response &res);
+  bool _read_settings_cmd(ds_kongsberg_msgs::SettingsCmd::Request &req, ds_kongsberg_msgs::SettingsCmd::Response &res);
   bool _bist_cmd(ds_kongsberg_msgs::BistCmd::Request &req, ds_kongsberg_msgs::BistCmd::Response &res);
   bool _load_xml_cmd(ds_kongsberg_msgs::LoadXmlCmd::Request &req, ds_kongsberg_msgs::LoadXmlCmd::Response &res);
 
@@ -117,6 +118,7 @@ private:
   template <class T1>
   std::string _send_kctrl_param(std::vector<std::string> params, std::vector<T1> vals);
   std::string _send_kctrl_param(std::vector<KSetting> params);
+  void _read_kctrl_params();
 
   template <class EMdgmMRZ_S>
   void _read_and_publish_mrz(const ds_kongsberg_msgs::KongsbergKMAllRecord &r,

@@ -596,6 +596,7 @@ KongsbergEM2040::setupServices()
   std::string ping_srv = ros::param::param<std::string>("~ping_service", "ping_cmd");
   d->ping_srv_ = d->nh_.advertiseService<ds_kongsberg_msgs::PingCmd::Request, ds_kongsberg_msgs::PingCmd::Response>
       (name + "/" + ping_srv, boost::bind(&KongsbergEM2040::_ping_cmd, this, _1, _2));
+
   std::string power_srv = ros::param::param<std::string>("~power_service", "power_cmd");
   d->power_srv_ = d->nh_.advertiseService<ds_kongsberg_msgs::PowerCmd::Request, ds_kongsberg_msgs::PowerCmd::Response>
       (name + "/" + power_srv, boost::bind(&KongsbergEM2040::_power_cmd, this, _1, _2));
@@ -603,10 +604,17 @@ KongsbergEM2040::setupServices()
   d->settings_srv_ = d->nh_.advertiseService<ds_kongsberg_msgs::SettingsCmd::Request,
                                          ds_kongsberg_msgs::SettingsCmd::Response>
       (name + "/" + settings_srv, boost::bind(&KongsbergEM2040::_settings_cmd, this, _1, _2));
+
   std::string msettings_srv = ros::param::param<std::string>("~multisettings_service", "multi_settings_cmd");
   d->multi_settings_srv_ = d->nh_.advertiseService<ds_kongsberg_msgs::MultiSettingsCmd::Request,
                                                  ds_kongsberg_msgs::MultiSettingsCmd::Response>
       (name + "/" + msettings_srv, boost::bind(&KongsbergEM2040::_multisettings_cmd, this, _1, _2));
+
+  std::string readsettings_srv = ros::param::param<std::string>("~readsettings_service", "read_settings_cmd");
+  d->read_settings_srv_ = d->nh_.advertiseService<ds_kongsberg_msgs::SettingsCmd::Request,
+          ds_kongsberg_msgs::SettingsCmd::Response>
+(name + "/" + readsettings_srv, boost::bind(&KongsbergEM2040::_read_settings_cmd, this, _1, _2));
+
   std::string bist_srv = ros::param::param<std::string>("~bist_service", "bist_cmd");
   d->bist_srv_ = d->nh_.advertiseService<ds_kongsberg_msgs::BistCmd::Request, ds_kongsberg_msgs::BistCmd::Response>
       (name + "/" + bist_srv, boost::bind(&KongsbergEM2040::_bist_cmd, this, _1, _2));
@@ -799,6 +807,14 @@ bool
 KongsbergEM2040::_multisettings_cmd(ds_kongsberg_msgs::MultiSettingsCmd::Request &req, ds_kongsberg_msgs::MultiSettingsCmd::Response &res)
 {
   res.command_sent = _send_kctrl_param(req.settings);
+  return true;
+}
+
+bool
+KongsbergEM2040::_read_settings_cmd(ds_kongsberg_msgs::SettingsCmd::Request &req, ds_kongsberg_msgs::SettingsCmd::Response &res)
+{
+  _read_kctrl_params();
+  res.command_sent = true;
   return true;
 }
 
@@ -1007,6 +1023,17 @@ KongsbergEM2040::_send_kctrl_param(std::vector<KSetting> params)
   auto msg = ss.str();
   d->send_kctrl_data_(msg);
   return msg;
+}
+void
+KongsbergEM2040::_read_kctrl_params()
+{
+
+  std::stringstream ss;
+  ss << "$KSSIS,"
+     << SIS_TO_K::GETVALUES << ","
+     << d->m_status.sounder_name;
+  auto msg = ss.str();
+  d->send_kctrl_data_(msg);
 }
 
 void

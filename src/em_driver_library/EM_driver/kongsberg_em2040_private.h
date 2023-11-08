@@ -49,7 +49,7 @@ struct KongsbergEM2040Private{
   ros::ServiceServer power_srv_;
   ros::ServiceServer settings_srv_;
   ros::ServiceServer multi_settings_srv_;
-  ros::ServiceServer values_srv_;
+  ros::ServiceServer read_settings_srv_;
   ros::ServiceServer bist_srv_;
   ros::ServiceServer xml_srv_;
 
