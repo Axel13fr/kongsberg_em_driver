@@ -614,6 +614,43 @@ KongsbergEM2040::setupServices()
   d->xml_srv_ = d->nh_.advertiseService<ds_kongsberg_msgs::LoadXmlCmd::Request, ds_kongsberg_msgs::LoadXmlCmd::Response>
       (name + "/" + xml_srv, boost::bind(&KongsbergEM2040::_load_xml_cmd, this, _1, _2));
 }
+void kongsberg_em::KongsbergEM2040::_reset_rt_params()
+{
+    d->m_rtParams.rt_force_depth = "0";
+    d->m_rtParams.rt_min_depth = "0";
+    d->m_rtParams.rt_max_depth = "0";
+    d->m_rtParams.rt_ping_freq = "0";
+    d->m_rtParams.rt_depth_mode = "0";
+    d->m_rtParams.rt_detector_mode = "0";
+    d->m_rtParams.rt_fm_disable = "0";
+    d->m_rtParams.rt_log_watercol = "0";
+    d->m_rtParams.rt_extra_detect = "0";
+    d->m_rtParams.rt_pitch_stab = "0";
+    d->m_rtParams.rt_tx_angle_along = "0";
+    d->m_rtParams.rt_yaw_stab = "0";
+    d->m_rtParams.rt_max_ping_rate = "0";
+    d->m_rtParams.rt_min_swath_distance = "0";
+    d->m_rtParams.rt_trigger = "0";
+    d->m_rtParams.rt_port_angle = "0";
+    d->m_rtParams.rt_stbd_angle = "0";
+    d->m_rtParams.rt_port_coverage = "0";
+    d->m_rtParams.rt_stbd_coverage = "0";
+}
+
+void kongsberg_em::KongsbergEM2040::_reset_sensor_input_statuses()
+{
+    d->m_status.cpu_temperature = UNKNOWN_STATUS;
+    d->m_status.position_1 =  UNKNOWN_STATUS;
+    d->m_status.position_2 =  UNKNOWN_STATUS;
+    d->m_status.position_3 = UNKNOWN_STATUS;
+    d->m_status.attitude_1 = UNKNOWN_STATUS;
+    d->m_status.attitude_2 = UNKNOWN_STATUS;
+    d->m_status.depth = UNKNOWN_STATUS;
+    d->m_status.svp = UNKNOWN_STATUS;
+    d->m_status.time_sync = UNKNOWN_STATUS;
+    d->m_status.pps = UNKNOWN_STATUS;
+}
+
 void
 KongsbergEM2040::setupParameters()
 {
@@ -625,35 +662,8 @@ KongsbergEM2040::setupParameters()
   d->m_status.bist_directory = ros::param::param<std::string>("~bist_dir", "/tmp/");
   d->m_status.kmall_directory = ros::param::param<std::string>("~kmall_dir", "/tmp/");
   d->m_status.xml_directory = ros::param::param<std::string>("~xml_dir", "/tmp/");
-  d->m_status.cpu_temperature = "";
-  d->m_status.position_1 =  "";
-  d->m_status.position_2 =  "";
-  d->m_status.position_3 = "";
-  d->m_status.attitude_1 = "";
-  d->m_status.attitude_2 = "";
-  d->m_status.depth = "";
-  d->m_status.svp = "";
-  d->m_status.time_sync = "";
-  d->m_status.pps = "";
-  d->m_rtParams.rt_force_depth = "0";
-  d->m_rtParams.rt_min_depth = "0";
-  d->m_rtParams.rt_max_depth = "0";
-  d->m_rtParams.rt_ping_freq = "0";
-  d->m_rtParams.rt_depth_mode = "0";
-  d->m_rtParams.rt_detector_mode = "0";
-  d->m_rtParams.rt_fm_disable = "0";
-  d->m_rtParams.rt_log_watercol = "0";
-  d->m_rtParams.rt_extra_detect = "0";
-  d->m_rtParams.rt_pitch_stab = "0";
-  d->m_rtParams.rt_tx_angle_along = "0";
-  d->m_rtParams.rt_yaw_stab = "0";
-  d->m_rtParams.rt_max_ping_rate = "0";
-  d->m_rtParams.rt_min_swath_distance = "0";
-  d->m_rtParams.rt_trigger = "0";
-  d->m_rtParams.rt_port_angle = "0";
-  d->m_rtParams.rt_stbd_angle = "0";
-  d->m_rtParams.rt_port_coverage = "0";
-  d->m_rtParams.rt_stbd_coverage = "0";
+  _reset_sensor_input_statuses();
+  _reset_rt_params();
   // other parameters
   d->mrz_frame_id_ = ros::param::param<std::string>("~mrz_frame_id", "sonar_vcs");
   d->save_kmall_files = ros::param::param<bool>("~save_kmall_files", true);
@@ -1208,6 +1218,7 @@ KongsbergEM2040::_on_kctrl_timeout(const ros::TimerEvent&)
   d->m_status.pu_powered = false;
   d->m_status.pu_connected = false;
   d->m_status.bist_running = false;
+  _reset_sensor_input_statuses();
   d->kmstatus_pub_.publish(d->m_status);
 }
 

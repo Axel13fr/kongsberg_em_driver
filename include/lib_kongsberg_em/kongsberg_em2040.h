@@ -135,11 +135,18 @@ private:
   void _on_pu_connected_timeout(const ros::TimerEvent&);
   void _on_pinging_timeout(const ros::TimerEvent&);
 
+  void _reset_rt_params();
+  void _reset_sensor_input_statuses();
+
+  static constexpr auto UNKNOWN_STATUS = "UNKNOWN";
+
   static double _timeToLastPartition(const EMdgm_f::EMdgmHeader *hdr);
 
   // All object members are hidden inside a pointer to preserve binary compatiblity
   // See https://wiki.qt.io/D-Pointer for explanation
   std::unique_ptr<KongsbergEM2040Private> d;
+
+
 };
 
 }
