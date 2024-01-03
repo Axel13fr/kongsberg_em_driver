@@ -5,13 +5,12 @@
 int main(int argc, char* argv[])
 {
   // Boost Event loop handler
-#if BOOST_VERSION <= 106501
-  // ROS Melodic
-  boost::asio::io_service io_context;
+#if BOOST_VERSION < 106600
+    auto io_context = std::make_shared<boost::asio::io_service>();
 #else
-  // ROS Noetic
-  boost::asio::io_context io_context;
+    auto io_context = std::make_shared<boost::asio::io_context>();
 #endif
+
   // Static Function Call doing the magic to unify event loops
   AsioCallbackQueue::replaceGlobalQueue(io_context);
 
@@ -20,8 +19,8 @@ int main(int argc, char* argv[])
   ros::NodeHandle nh("~");
 
   // UDP sockets for sonar communication
-  NodeUdpSocket kctrl_socket(io_context, "kctrl_connection", nh);
-  NodeUdpSocket kmall_socket(io_context, "kmall_connection", nh);
+  NodeUdpSocket kctrl_socket(*io_context, "kctrl_connection", nh);
+  NodeUdpSocket kmall_socket(*io_context, "kmall_connection", nh);
 
   // The driver will send commands using the kctrl socket
   auto sendKCtrlData = boost::bind(&NodeUdpSocket::sendData, &kctrl_socket, _1);
@@ -31,7 +30,7 @@ int main(int argc, char* argv[])
   kctrl_socket.setReceiveCb(boost::bind(&kongsberg_em::KongsbergEM2040::_on_kctrl_data, &driver,_1));
   kmall_socket.setReceiveCb(boost::bind(&kongsberg_em::KongsbergEM2040::_on_kmall_data, &driver,_1));
 
-  io_context.run();
+  io_context->run();
   ros::shutdown();
 
   return 0;
