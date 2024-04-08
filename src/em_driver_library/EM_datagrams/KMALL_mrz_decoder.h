@@ -211,9 +211,15 @@ static std::pair<bool, EMdgmMRZ_S> read_mrz(uint8_t *ptr, int max_length)
   }
   auto check_length = *(reinterpret_cast<uint32_t *>(ptr + count));
   count += sizeof(uint32_t);
-  ROS_ERROR_STREAM_COND(count != max_length, "Count: " << count << "!= max_length: " << max_length);
-  ROS_ERROR_STREAM_COND(mrz.header.numBytesDgm != check_length,
-                        "Header len: " << mrz.header.numBytesDgm << " Check len: " << check_length);
+  if(count != max_length){
+    ROS_ERROR_STREAM_THROTTLE(10, "Count: " << count << "!= max_length: " << max_length);
+  }
+
+  if(mrz.header.numBytesDgm != check_length){
+    ROS_ERROR_STREAM_THROTTLE(10,
+                        "Header len: " << mrz.header.numBytesDgm << " Check len: " << check_length);  
+  }
+  
   return {true, mrz};
 }
 
