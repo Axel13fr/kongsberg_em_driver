@@ -125,7 +125,8 @@ static ds_multibeam_msgs::MultibeamRaw mrz_to_mb_raw(EMdgmMRZ_S* msg){
   ros::Time t;
   mb.header.stamp = t.fromSec(msg->header.time_sec + msg->header.time_nanosec / 1.0e9);
 
-  int num_soundings = msg->rxInfo.numSoundingsMaxMain + msg->rxInfo.numExtraDetections;
+  // Only take bottom soundings: extra detections are from the water column and shall be ignored
+  int num_soundings = msg->rxInfo.numSoundingsMaxMain;
   mb.beamflag.resize(num_soundings);
   mb.twowayTravelTime.resize(num_soundings);
   mb.txDelay.resize(num_soundings);
@@ -156,7 +157,9 @@ template <typename EMdgmMRZ_S>
 static sensor_msgs::PointCloud2 mrz_to_pointcloud2(const EMdgmMRZ_S& msg,
                                                   const std::string &frame_id){
   pcl::PointCloud<pcl::PointXYZI> pcl;
-  int num_soundings = msg.rxInfo.numSoundingsMaxMain + msg.rxInfo.numExtraDetections;
+
+  // Only take bottom soundings: extra detections are from the water column and shall be ignored
+  int num_soundings = msg.rxInfo.numSoundingsMaxMain;
   pcl::PointXYZI pt;
   for (int i = 0; i < num_soundings; i++)
   {
