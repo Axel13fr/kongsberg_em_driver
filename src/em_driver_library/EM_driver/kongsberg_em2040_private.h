@@ -57,6 +57,7 @@ struct KongsbergEM2040Private{
   ros::Publisher pointcloud_pub_;
   ros::Publisher offset_pub_;
   ros::Publisher mrz_pub_;
+  ros::Publisher mrz_full_pub_;
 
   ros::Publisher kssis_pub_;
   ros::Publisher kmstatus_pub_;

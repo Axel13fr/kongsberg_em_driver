@@ -37,6 +37,7 @@
 #include "../../em_driver_library/EM_datagrams/KMALL_mrz_decoder.h"
 #include "ds_kongsberg_msgs/KongsbergKSSIS.h"
 #include "ds_kongsberg_msgs/KongsbergMRZ.h"
+#include "ds_kongsberg_msgs/KongsbergMRZFull.h"
 #include "kongsberg_em2040_strings.h"
 #include "ds_core_msgs/ClockOffset.h"
 #include <regex>
@@ -711,6 +712,9 @@ KongsbergEM2040::setupPublishers()
 
   auto mrz_topic = ros::param::param<std::string>("~mrz_topic", "mrz");
   d->mrz_pub_ = d->nh_.advertise<ds_kongsberg_msgs::KongsbergMRZ>(name + "/" + mrz_topic, 1000);
+
+  auto mrz_full_topic = ros::param::param<std::string>("~mrz_full_topic", "mrz_full");
+  d->mrz_full_pub_ = d->nh_.advertise<ds_kongsberg_msgs::KongsbergMRZFull>(name + "/" + mrz_full_topic, 1000);
 }
 
 void
@@ -1322,6 +1326,10 @@ void KongsbergEM2040::_read_and_publish_mrz(const ds_kongsberg_msgs::KongsbergKM
     mrz_msg.header = r.header;
     mrz_msg.ds_header = r.ds_header;
     d->mrz_pub_.publish(mrz_msg);
+
+    auto mrz_full_msg = mrz_to_msg_full(mrz);
+    mrz_full_msg.header = r.header;
+    d->mrz_full_pub_.publish(mrz_full_msg);
 
     d->pointcloud_pub_.publish(mrz_to_pointcloud2(mrz, d->mrz_frame_id_));
     auto delta_ping = mrz.cmnPart.pingCnt - d->m_status.ping_num;
